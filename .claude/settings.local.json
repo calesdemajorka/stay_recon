@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(10x --version)",
+      "Bash(10x doctor *)"
+    ]
+  }
+}
