@@ -13,6 +13,16 @@ services:
     startCommand: uv run gunicorn stay_recon.wsgi:application
     healthCheckPath: /healthz/
     autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - manage.py
+        - stay_recon/**
+        - build.sh
+        - pyproject.toml
+        - uv.lock
+        - .python-version
+        - render.yaml
+      ignoredPaths: []
     envVars:
       - key: SECRET_KEY
         generateValue: true
