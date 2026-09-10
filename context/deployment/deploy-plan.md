@@ -24,8 +24,10 @@ status: live
 ## What's Deployed
 
 Bare Django 6.1.1 scaffold — no custom app/models yet (out of scope for this
-deploy; tracked as future feature work). `/healthz/` is a plain view in
-`stay_recon/views.py` (not a Django app: no `INSTALLED_APPS` entry, no
+deploy; tracked as future feature work). `/` serves a static placeholder
+landing page (plain view, `stay_recon/views.py::index`) so the root URL no
+longer 404s while the real product UI is built out. `/healthz/` is a plain
+view in the same module (not a Django app: no `INSTALLED_APPS` entry, no
 migrations) that runs `SELECT 1` through Django's real DB connection,
 proving gunicorn → Django → Postgres wiring end-to-end. `/admin/` is mounted
 and redirects to login as expected; no superuser has been created. Static
@@ -34,17 +36,27 @@ only Django's own admin assets exist so far, no custom static files. Only
 Django's built-in migrations (`admin`, `auth`, `contenttypes`, `sessions` —
 18 total) have run; no domain schema exists yet.
 
-Commit deployed: `63e0041` ("Prep Django scaffold for first Render deploy").
-Deploy id `dep-dah8hr9t0dsc73f1d070`, triggered by `blueprint_sync`, status
-`live`, built and live within ~71 seconds of Blueprint launch.
+Initial deploy: commit `63e0041` ("Prep Django scaffold for first Render
+deploy"), deploy id `dep-dah8hr9t0dsc73f1d070`, triggered by
+`blueprint_sync`, live within ~71 seconds of Blueprint launch.
+
+Follow-up deploy: commit `0bdf1e7` ("Add placeholder landing page at /"),
+deploy id `dep-dah8qc49v7es73b9npbg`, triggered automatically by
+`new_commit` (`autoDeployTrigger: commit`), status `live`, built in 47s —
+first real-world confirmation that routine `git push` → auto-deploy works
+unattended, no human gate needed.
 
 ## Verification Performed
 
-All checks run 2026-09-10, immediately after Blueprint launch, via a mix of
+All checks run 2026-09-10, immediately after each deploy, via a mix of
 direct HTTPS requests and the Render MCP server (read-only):
 
 - Deploy status: `live` (via `list_deploys` / `get_deploy`), matching the
-  exact commit pushed.
+  exact commit pushed, for both the initial deploy and the placeholder-page
+  follow-up.
+- `GET https://stay-recon.onrender.com/` → `200` (placeholder landing page,
+  added after the initial deploy) — previously `404`, since no view was
+  wired to the root path.
 - `GET https://stay-recon.onrender.com/healthz/` → `200`, body
   `{"status": "ok"}` — confirms the app boots, env vars load, and
   `DATABASE_URL` resolves to a working connection at runtime, not just that
