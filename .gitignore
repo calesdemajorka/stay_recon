@@ -18,6 +18,7 @@ media/
 # Environment / secrets
 .env
 .env.*
+!.env.example
 
 # Editor / OS
 .vscode/

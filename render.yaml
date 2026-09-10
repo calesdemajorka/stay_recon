@@ -1,0 +1,28 @@
+databases:
+  - name: stay-recon-db
+    plan: free
+    databaseName: stay_recon
+    user: stay_recon
+
+services:
+  - type: web
+    name: stay-recon
+    runtime: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: uv run gunicorn stay_recon.wsgi:application
+    healthCheckPath: /healthz/
+    autoDeployTrigger: commit
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stay-recon-db
+          property: connectionString
