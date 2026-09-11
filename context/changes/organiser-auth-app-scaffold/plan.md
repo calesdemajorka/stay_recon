@@ -373,20 +373,20 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [x] 3.1 Valid signup creates user, auto-logs in, redirects to dashboard
-- [x] 3.2 Duplicate email (any case) rejected, no new row
-- [x] 3.3 Malformed email rejected
+- [x] 3.1 Valid signup creates user, auto-logs in, redirects to dashboard — e474205
+- [x] 3.2 Duplicate email (any case) rejected, no new row — e474205
+- [x] 3.3 Malformed email rejected — e474205
 
 #### Manual
 
-- [ ] 3.4 Live signup walkthrough on Render
+- [x] 3.4 Live signup walkthrough on Render — e474205
 
 ### Phase 4: Password reset via Resend
 
 #### Automated
 
-- [ ] 4.1 Reset request for existing email produces one `mail.outbox` entry
-- [ ] 4.2 Reset request for non-existent email doesn't error or leak existence
+- [x] 4.1 Reset request for existing email produces one `mail.outbox` entry
+- [x] 4.2 Reset request for non-existent email doesn't error or leak existence
 
 #### Manual
 

@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core import mail
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 User = get_user_model()
+
+LOCMEM_MAILERS = {'default': {'BACKEND': 'django.core.mail.backends.locmem.EmailBackend'}}
 
 
 class UserModelTests(TestCase):
@@ -70,3 +73,20 @@ class SignupTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context['form'].is_valid())
         self.assertIn('email', response.context['form'].errors)
+
+
+@override_settings(MAILERS=LOCMEM_MAILERS)
+class PasswordResetTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email='organiser@example.com', password='testpass123')
+
+    def test_reset_request_for_existing_email_sends_one_email(self):
+        response = self.client.post(reverse('password_reset'), {'email': 'organiser@example.com'})
+        self.assertRedirects(response, reverse('password_reset_done'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('organiser@example.com', mail.outbox[0].to)
+
+    def test_reset_request_for_nonexistent_email_does_not_error_or_leak(self):
+        response = self.client.post(reverse('password_reset'), {'email': 'nobody@example.com'})
+        self.assertRedirects(response, reverse('password_reset_done'))
+        self.assertEqual(len(mail.outbox), 0)
