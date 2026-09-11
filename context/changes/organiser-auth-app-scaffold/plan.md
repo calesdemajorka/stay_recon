@@ -360,22 +360,22 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [x] 2.1 `GET /accounts/login/` returns 200
-- [x] 2.2 Valid login redirects to `/dashboard/`
-- [x] 2.3 Unauthenticated `/dashboard/` redirects to login
-- [x] 2.4 Logout clears session
+- [x] 2.1 `GET /accounts/login/` returns 200 — e51264b
+- [x] 2.2 Valid login redirects to `/dashboard/` — e51264b
+- [x] 2.3 Unauthenticated `/dashboard/` redirects to login — e51264b
+- [x] 2.4 Logout clears session — e51264b
 
 #### Manual
 
-- [ ] 2.5 Live login/dashboard/logout walkthrough on Render
+- [x] 2.5 Live login/dashboard/logout walkthrough on Render — e51264b
 
 ### Phase 3: Signup
 
 #### Automated
 
-- [ ] 3.1 Valid signup creates user, auto-logs in, redirects to dashboard
-- [ ] 3.2 Duplicate email (any case) rejected, no new row
-- [ ] 3.3 Malformed email rejected
+- [x] 3.1 Valid signup creates user, auto-logs in, redirects to dashboard
+- [x] 3.2 Duplicate email (any case) rejected, no new row
+- [x] 3.3 Malformed email rejected
 
 #### Manual
 

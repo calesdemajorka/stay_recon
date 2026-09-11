@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from accounts.views import dashboard
+from accounts.views import dashboard, signup
 
 from .views import health, index
 
@@ -27,4 +27,5 @@ urlpatterns = [
     path('healthz/', health, name='health'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('dashboard/', dashboard, name='dashboard'),
+    path('signup/', signup, name='signup'),
 ]
