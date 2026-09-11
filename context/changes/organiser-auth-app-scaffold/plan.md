@@ -337,14 +337,14 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [ ] 1.1 `makemigrations --check --dry-run` reports no missing migrations
-- [ ] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3`
-- [ ] 1.3 `manage.py check` passes
-- [ ] 1.4 Case-insensitive email lookup unit test passes
+- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations
+- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3`
+- [x] 1.3 `manage.py check` passes
+- [x] 1.4 Case-insensitive email lookup unit test passes
 
 #### Manual
 
-- [ ] 1.5 Production Postgres schema reset before deploy
+- [x] 1.5 Production Postgres schema reset before deploy
 - [ ] 1.6 `django_migrations` confirms `accounts.0001_initial` live, zero rows in `accounts_user`
 
 ### Phase 2: Login, logout & dashboard

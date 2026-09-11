@@ -40,7 +40,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 
 | ID   | Change ID                            | Outcome (user can …)                                                        | Prerequisites        | PRD refs                  | Status   |
 | ---- | ------------------------------------- | ----------------------------------------------------------------------------- | --------------------- | -------------------------- | -------- |
-| F-01 | organiser-auth-app-scaffold           | (foundation) Django app scaffold exists; organiser can log in                 | —                      | Access Control (Organiser) | planning |
+| F-01 | organiser-auth-app-scaffold           | (foundation) Django app scaffold exists; organiser can log in                 | —                      | Access Control (Organiser) | in-progress |
 | F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | proposed |
 | S-01 | create-event                          | Organiser can create a new event (duplicate name+date blocked)                | F-01                  | FR-001                     | proposed |
 | S-02 | csv-upload-room-mapping               | Organiser can upload a hotel CSV, map columns, and confirm a normalized room list | S-01, F-01          | FR-002                     | proposed |
@@ -86,7 +86,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Nothing else can be built until an app exists and organisers can log in — sequenced first because every other item transitively depends on it. Main risk is scope-creeping into a full auth system (OAuth + passwordless) when a single login method is enough to unblock downstream work; that choice belongs to `/10x-plan`, not this roadmap.
-- **Status:** planning
+- **Status:** in-progress
 
 ### F-02: Access-link & staff-session scaffold
 

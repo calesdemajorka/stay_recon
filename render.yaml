@@ -17,6 +17,7 @@ services:
       paths:
         - manage.py
         - stay_recon/**
+        - accounts/**
         - build.sh
         - pyproject.toml
         - uv.lock
