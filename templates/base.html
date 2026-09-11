@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}StayRecon{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 4rem auto; padding: 0 1rem; color: #1a1a1a; }
+    h1 { margin-bottom: 0.25rem; }
+    p { color: #555; }
+    label { display: block; margin-top: 1rem; }
+    input { display: block; width: 100%; box-sizing: border-box; padding: 0.4rem; margin-top: 0.25rem; }
+    button { margin-top: 1.5rem; padding: 0.5rem 1rem; }
+    ul.errorlist { color: #b00020; padding-left: 1.2rem; }
+  </style>
+</head>
+<body>
+  {% block content %}{% endblock %}
+</body>
+</html>

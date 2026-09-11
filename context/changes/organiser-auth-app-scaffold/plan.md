@@ -142,6 +142,14 @@ Wires Django's built-in login/logout views (and the shared auth-urls include tha
 
 **Contract**: `LOGIN_URL = 'login'`, `LOGIN_REDIRECT_URL = 'dashboard'`, `LOGOUT_REDIRECT_URL = 'login'`; `TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']`.
 
+#### 5. Superuser bootstrap (adaptation — see note below)
+
+**File**: `accounts/management/commands/bootstrap_superuser.py` (new), `build.sh`, `render.yaml`, `.env.example`
+
+**Intent**: Render's free tier has no SSH/shell/one-off-job runner, so `manage.py createsuperuser` cannot be run interactively in production (discovered during implementation — the plan originally assumed `render ssh` was available). This idempotent management command creates one superuser from env vars on every deploy, no-opping when the vars are unset or the account already exists.
+
+**Contract**: `bootstrap_superuser` reads `DJANGO_SUPERUSER_EMAIL`/`DJANGO_SUPERUSER_PASSWORD`, skips if either is unset or a user with that (lowercased) email already exists, otherwise calls `User.objects.create_superuser`. `build.sh` runs it after `migrate`. `render.yaml` adds both env vars as `sync: false` (human sets the values in the Render dashboard — not generated, not committed). `.env.example` documents both.
+
 ### Success Criteria:
 
 #### Automated Verification:
@@ -153,7 +161,8 @@ Wires Django's built-in login/logout views (and the shared auth-urls include tha
 
 #### Manual Verification:
 
-- On the live Render deploy: create a superuser via `render ssh stay-recon` (or plain `ssh srv-dah8hr1t0dsc73f1cvd0@ssh.oregon.render.com`), then `uv run manage.py createsuperuser` inside the container; log in with it, reach the dashboard, log out
+- **Human step**: set `DJANGO_SUPERUSER_EMAIL`/`DJANGO_SUPERUSER_PASSWORD` in the Render dashboard env vars before this phase deploys (free tier has no SSH — `bootstrap_superuser` creates the account from these on deploy instead)
+- On the live Render deploy: log in with the bootstrapped superuser, reach the dashboard, log out
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
 
@@ -337,24 +346,24 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations
-- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3`
-- [x] 1.3 `manage.py check` passes
-- [x] 1.4 Case-insensitive email lookup unit test passes
+- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations — 3ede6b0
+- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3` — 3ede6b0
+- [x] 1.3 `manage.py check` passes — 3ede6b0
+- [x] 1.4 Case-insensitive email lookup unit test passes — 3ede6b0
 
 #### Manual
 
-- [x] 1.5 Production Postgres schema reset before deploy
-- [ ] 1.6 `django_migrations` confirms `accounts.0001_initial` live, zero rows in `accounts_user`
+- [x] 1.5 Production Postgres schema reset before deploy — 3ede6b0
+- [x] 1.6 `django_migrations` confirms `accounts.0001_initial` live, zero rows in `accounts_user` — 3ede6b0
 
 ### Phase 2: Login, logout & dashboard
 
 #### Automated
 
-- [ ] 2.1 `GET /accounts/login/` returns 200
-- [ ] 2.2 Valid login redirects to `/dashboard/`
-- [ ] 2.3 Unauthenticated `/dashboard/` redirects to login
-- [ ] 2.4 Logout clears session
+- [x] 2.1 `GET /accounts/login/` returns 200
+- [x] 2.2 Valid login redirects to `/dashboard/`
+- [x] 2.3 Unauthenticated `/dashboard/` redirects to login
+- [x] 2.4 Logout clears session
 
 #### Manual
 

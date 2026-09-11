@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — StayRecon{% endblock %}
+{% block content %}
+  <h1>Welcome, {{ request.user.email }}</h1>
+  <p>Your account-scoped dashboard. Nothing to show yet.</p>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log out</button>
+  </form>
+{% endblock %}

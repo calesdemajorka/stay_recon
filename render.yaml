@@ -37,3 +37,7 @@ services:
         fromDatabase:
           name: stay-recon-db
           property: connectionString
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false

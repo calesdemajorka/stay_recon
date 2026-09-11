@@ -29,3 +29,6 @@ media/
 .claude/skills/10x*
 .claude/prompts/*
 .claude/.10x*
+
+# Agent contributor guide (stale — predates app scaffolding, not tracked for now)
+AGENTS.md
