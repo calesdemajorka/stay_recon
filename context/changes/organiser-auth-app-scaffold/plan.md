@@ -230,7 +230,9 @@ Wires Django's built-in password-reset flow to real email delivery through Resen
 
 **Intent**: Send real email in production via Resend; keep local dev on Django's console backend (no behavior change locally, matching the existing `DEBUG`/`DATABASE_URL` env-gating pattern already in this file).
 
-**Contract**: `stay_recon/settings.py` already defines a `MAILERS` dict (Django 6.1's replacement for `EMAIL_BACKEND`/`EMAIL_HOST`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`/`EMAIL_PORT`/`EMAIL_USE_TLS` — those flat settings are deprecated and, per Django's own docs, raise `AttributeError` if accessed while `MAILERS` is defined, since the two are mutually exclusive). Update `MAILERS['default']` in place, env-gated the same way as elsewhere in this file: console backend (as today) when `RESEND_API_KEY` is unset, otherwise `django.core.mail.backends.smtp.EmailBackend` with `OPTIONS = {'host': 'smtp.resend.com', 'port': 587, 'username': 'resend', 'password': os.environ['RESEND_API_KEY'], 'use_tls': True}`. `DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')` is unaffected — it's a separate, still-supported top-level setting, not part of the `MAILERS` migration.
+**Contract**: `stay_recon/settings.py` already defines a `MAILERS` dict (Django 6.1's replacement for `EMAIL_BACKEND`/`EMAIL_HOST`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`/`EMAIL_PORT`/`EMAIL_USE_TLS` — those flat settings are deprecated and, per Django's own docs, raise `AttributeError` if accessed while `MAILERS` is defined, since the two are mutually exclusive). Update `MAILERS['default']` in place, env-gated the same way as elsewhere in this file: console backend (as today) when `RESEND_API_KEY` is unset, otherwise a custom `stay_recon.mail_backends.ResendAPIBackend` with `OPTIONS = {'api_key': os.environ['RESEND_API_KEY']}` (see adaptation note below — not the SMTP backend originally planned). `DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')` is unaffected — it's a separate, still-supported top-level setting, not part of the `MAILERS` migration.
+
+**Adaptation (discovered live in production, not in original plan)**: Render's free tier blocks outbound traffic to SMTP ports 25/465/587 as of September 2025 — confirmed by a live 500 error (`smtplib` connection hang → gunicorn worker timeout → `SystemExit`) when the originally-planned SMTP backend tried to connect to `smtp.resend.com:587`. HTTPS (443) is unaffected, so `stay_recon/mail_backends.py` (new) implements a minimal stdlib-only `ResendAPIBackend(BaseEmailBackend)` that POSTs to `https://api.resend.com/emails` directly instead of using SMTP. No new dependency — uses `urllib.request` only.
 
 #### 2. Password-reset templates
 
@@ -385,8 +387,8 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [x] 4.1 Reset request for existing email produces one `mail.outbox` entry
-- [x] 4.2 Reset request for non-existent email doesn't error or leak existence
+- [x] 4.1 Reset request for existing email produces one `mail.outbox` entry — 4f5b7da
+- [x] 4.2 Reset request for non-existent email doesn't error or leak existence — 4f5b7da
 
 #### Manual
 

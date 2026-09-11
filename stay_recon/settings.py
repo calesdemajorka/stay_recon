@@ -158,15 +158,14 @@ STORAGES = {
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
 
 if RESEND_API_KEY:
+    # Resend's HTTP API, not SMTP: Render's free tier blocks outbound SMTP
+    # ports (25/465/587) since Sept 2025, so the SMTP backend can never
+    # connect from there. HTTPS (443) is unaffected.
     MAILERS = {
         'default': {
-            'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+            'BACKEND': 'stay_recon.mail_backends.ResendAPIBackend',
             'OPTIONS': {
-                'host': 'smtp.resend.com',
-                'port': 587,
-                'username': 'resend',
-                'password': RESEND_API_KEY,
-                'use_tls': True,
+                'api_key': RESEND_API_KEY,
             },
         },
     }
