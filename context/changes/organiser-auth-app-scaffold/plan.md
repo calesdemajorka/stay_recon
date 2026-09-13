@@ -150,6 +150,8 @@ Wires Django's built-in login/logout views (and the shared auth-urls include tha
 
 **Contract**: `bootstrap_superuser` reads `DJANGO_SUPERUSER_EMAIL`/`DJANGO_SUPERUSER_PASSWORD`, skips if either is unset or a user with that (lowercased) email already exists, otherwise calls `User.objects.create_superuser`. `build.sh` runs it after `migrate`. `render.yaml` adds both env vars as `sync: false` (human sets the values in the Render dashboard — not generated, not committed). `.env.example` documents both.
 
+**Known limitation**: the skip-if-exists check means rotating `DJANGO_SUPERUSER_PASSWORD` in the Render dashboard after the account already exists has no effect on redeploy — the command only creates, never updates. Recovering a lost password requires a separate one-off (e.g. `changepassword` via `render ssh`, or deleting the row so the next deploy recreates it).
+
 ### Success Criteria:
 
 #### Automated Verification:
@@ -367,15 +369,16 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Manual
 
-- [x] 2.5 Live login/dashboard/logout walkthrough on Render — e51264b
+- [x] 2.5 `DJANGO_SUPERUSER_EMAIL`/`DJANGO_SUPERUSER_PASSWORD` set in Render dashboard — e51264b
+- [x] 2.6 Live login/dashboard/logout walkthrough on Render — e51264b
 
 ### Phase 3: Signup
 
 #### Automated
 
-- [x] 3.1 Valid signup creates user, auto-logs in, redirects to dashboard
-- [x] 3.2 Duplicate email (any case) rejected, no new row
-- [x] 3.3 Malformed email rejected
+- [x] 3.1 Valid signup creates user, auto-logs in, redirects to dashboard — e474205
+- [x] 3.2 Duplicate email (any case) rejected, no new row — e474205
+- [x] 3.3 Malformed email rejected — e474205
 
 #### Manual
 
@@ -385,8 +388,8 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [ ] 4.1 Reset request for existing email produces one `mail.outbox` entry
-- [ ] 4.2 Reset request for non-existent email doesn't error or leak existence
+- [x] 4.1 Reset request for existing email produces one `mail.outbox` entry
+- [x] 4.2 Reset request for non-existent email doesn't error or leak existence
 
 #### Manual
 

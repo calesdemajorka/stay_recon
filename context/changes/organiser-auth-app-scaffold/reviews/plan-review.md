@@ -3,52 +3,52 @@
 
 - **Plan**: `context/changes/organiser-auth-app-scaffold/plan.md`
 - **Mode**: Deep
-- **Date**: 2026-09-11
+- **Date**: 2026-09-13
 - **Verdict**: REVISE (all findings fixed during triage — see Decisions below)
-- **Findings**: 1 critical, 1 warning, 1 observation
+- **Findings**: 1 critical, 0 warnings, 2 observations
 
 ## Verdicts
 
 | Dimension | Verdict |
 |-----------|---------|
-| End-State Alignment | FAIL (pre-fix) |
+| End-State Alignment | PASS |
 | Lean Execution | PASS |
 | Architectural Fitness | PASS |
 | Blind Spots | WARNING (pre-fix) |
-| Plan Completeness | WARNING (pre-fix) |
+| Plan Completeness | FAIL (pre-fix) |
 
 ## Grounding
 
-Grounding: 5/5 paths ✓, 4/4 symbols ✓, brief↔plan ✓. Deep verification done directly (this session built the entire current codebase) rather than via sub-agent; the one high-value check — Django 6.1's actual email-settings API — was verified live against official Django docs.
+Grounding: 10/10 paths ✓, 5/5 symbols ✓, brief↔plan ✓. Phases 1–3 code (already implemented) checked directly against their Contracts — `accounts/models.py`, `accounts/forms.py`, `accounts/views.py`, `stay_recon/urls.py`, `render.yaml`, `build.sh`, `accounts/management/commands/bootstrap_superuser.py` all match. Phase 4's unimplemented `MAILERS` SMTP `OPTIONS` shape (host/port/username/password/use_tls, all lowercase) was re-verified live against the official Django 6.1 email docs and matches the plan's Contract exactly.
 
 ## Findings
 
-### F1 — Phase 4 uses deprecated EMAIL_* settings that hard-conflict with the already-present MAILERS config
+### F1 — Phase 2 Progress is missing a checkbox for a Manual Verification bullet
 
 - **Severity**: ❌ CRITICAL
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
-- **Dimension**: End-State Alignment
-- **Location**: Phase 4 — Password reset via Resend, Change #1 (Email settings)
-- **Detail**: `stay_recon/settings.py` already defines a `MAILERS` dict (console backend) from the original scaffold. Django 6.1 (this project's exact version) introduced `MAILERS` as the replacement for `EMAIL_BACKEND`/`EMAIL_HOST`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`/`EMAIL_PORT`/`EMAIL_USE_TLS`. Per Django's official mailers-migration docs (fetched live during review): when `MAILERS` is defined, accessing any deprecated `EMAIL_*` setting raises `AttributeError` — the two are mutually exclusive, `MAILERS` wins. Phase 4's original Contract set exactly those deprecated flat settings alongside the pre-existing `MAILERS` dict, which would crash the moment any code sends mail — exactly when Phase 4's own automated Success Criteria try to verify it.
-- **Fix**: Rewrite Phase 4 Change #1's Contract to configure `MAILERS['default']` directly (env-gated console vs SMTP via `OPTIONS`: host/port/username/password/use_tls) instead of flat `EMAIL_*` settings. Unit tests asserting on `mail.outbox` must override `MAILERS`, not `EMAIL_BACKEND`.
-- **Decision**: FIXED — applied to plan.md (Phase 4 Contract, Success Criteria, and Current State Analysis updated).
+- **Dimension**: Plan Completeness
+- **Location**: Phase 2 — Login, logout & dashboard / `## Progress` → Phase 2 → Manual
+- **Detail**: Phase 2's Manual Verification lists two bullets (set `DJANGO_SUPERUSER_EMAIL`/`PASSWORD`; live login/dashboard/logout walkthrough), but Progress → Phase 2 → Manual had only one checkbox (`2.5`, the walkthrough). The env-var step had no tracked checkbox — the only phase in the plan where Success Criteria bullets and Progress checkboxes didn't map 1:1.
+- **Fix**: Added `- [x] 2.5 DJANGO_SUPERUSER_EMAIL/PASSWORD set in Render dashboard — e51264b`, renumbered the walkthrough item to `2.6`.
+- **Decision**: FIXED — applied to plan.md (Phase 2 Progress → Manual).
 
-### F2 — No documented recovery if Phase 1's post-reset deploy migration fails
+### F2 — bootstrap_superuser silently no-ops on password rotation
 
-- **Severity**: ⚠️ WARNING
+- **Severity**: 📝 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Blind Spots
-- **Location**: Migration Notes
-- **Detail**: The human resets the production schema before Phase 1's commit is pushed. If the subsequent deploy's `migrate` step fails, Render keeps serving the previous release, but that release's code expects the now-deleted old schema — the site would be briefly broken with no documented next step.
-- **Fix**: Add one sentence to Migration Notes — since zero real data exists, a failed Phase 1 deploy is safe to retry from scratch (re-run the schema reset, re-push/redeploy).
-- **Decision**: FIXED — applied to plan.md (Migration Notes).
+- **Location**: Phase 2 — Superuser bootstrap (already implemented, `accounts/management/commands/bootstrap_superuser.py`)
+- **Detail**: Confirmed in the actual command: it skips creation whenever a user with that email already exists — it never updates the password on rerun. Rotating `DJANGO_SUPERUSER_PASSWORD` in the Render dashboard later is a silent no-op; the account keeps the old password. Not documented anywhere in the plan.
+- **Fix**: Added a "Known limitation" line to the Phase 2 Contract explaining the no-op behavior and the recovery path (`changepassword` via `render ssh`, or delete-and-recreate the row).
+- **Decision**: FIXED — applied to plan.md (Phase 2, Superuser bootstrap Contract).
 
-### F3 — Phase 2's manual step doesn't specify how to reach production to run createsuperuser
+### F3 — Phase 3's Progress items don't carry a commit sha, unlike Phases 1–2
 
 - **Severity**: 📝 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Plan Completeness
-- **Location**: Phase 2 — Manual Verification
-- **Detail**: "createsuperuser against production" didn't say how. Render web services expose SSH (`srv-dah8hr1t0dsc73f1cvd0@ssh.oregon.render.com`, confirmed this session).
-- **Fix**: Name the mechanism explicitly — `render ssh stay-recon` (or plain `ssh <sshAddress>`), then run the command inside the container.
-- **Decision**: FIXED — applied to plan.md (Phase 2 Manual Verification).
+- **Location**: `## Progress` → Phase 3 → Automated (3.1–3.3)
+- **Detail**: The Progress convention says "append — `<commit sha>` when a step lands." Phases 1–2 follow this; Phase 3's items were checked but carried no sha, even though `git log` shows a Phase 3 commit (`e474205`).
+- **Fix**: Confirmed `e474205` is the correct commit (`git show --stat` — touches `accounts/forms.py`, `accounts/views.py`, `stay_recon/urls.py`, `templates/accounts/signup.html`, `accounts/tests.py`; message "Signup (p3)"). Appended `— e474205` to Progress items 3.1–3.3.
+- **Decision**: FIXED — applied to plan.md (Progress → Phase 3 → Automated).

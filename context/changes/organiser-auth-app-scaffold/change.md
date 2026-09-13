@@ -3,7 +3,7 @@ change_id: organiser-auth-app-scaffold
 title: Organiser auth and Django app scaffold
 status: implementing
 created: 2026-09-11
-updated: 2026-09-11
+updated: 2026-09-13
 archived_at: null
 ---
 
