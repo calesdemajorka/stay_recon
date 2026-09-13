@@ -39,6 +39,7 @@ Verification: `uv run manage.py check --deploy` shows no auth/cookie/HSTS warnin
 - Event-staff authentication or scoped staff sessions — that's roadmap `F-02`, a separate change.
 - Any `Event`/domain data model or "own events" access scoping enforcement — no `Event` model exists yet; that's `S-01`.
 - Resend custom-domain verification — shipping with the shared `onboarding@resend.dev` sender, which only reliably delivers to the Resend account owner's own email. Documented as an accepted limitation (see Testing Strategy and the brief's Open Risks), not silently dropped.
+- Working around Render's free-tier SMTP port block — Phase 4's SMTP-based email delivery is confirmed broken on the live deploy (Render blocks outbound ports 25/465/587 on free web services). Fix (Resend HTTPS API or a paid Render plan) is deferred past the MVP deadline, tracked in GH #15, not silently dropped.
 - Rate-limiting or account lockout on repeated failed logins.
 - Audit logging of auth events (PRD's audit-trail FR-005 note already defers this past the deadline for the whole product).
 - Two-factor auth, "remember me" duration tuning beyond Django's session defaults.
@@ -234,6 +235,8 @@ Wires Django's built-in password-reset flow to real email delivery through Resen
 
 **Contract**: `stay_recon/settings.py` already defines a `MAILERS` dict (Django 6.1's replacement for `EMAIL_BACKEND`/`EMAIL_HOST`/`EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD`/`EMAIL_PORT`/`EMAIL_USE_TLS` — those flat settings are deprecated and, per Django's own docs, raise `AttributeError` if accessed while `MAILERS` is defined, since the two are mutually exclusive). Update `MAILERS['default']` in place, env-gated the same way as elsewhere in this file: console backend (as today) when `RESEND_API_KEY` is unset, otherwise `django.core.mail.backends.smtp.EmailBackend` with `OPTIONS = {'host': 'smtp.resend.com', 'port': 587, 'username': 'resend', 'password': os.environ['RESEND_API_KEY'], 'use_tls': True}`. `DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')` is unaffected — it's a separate, still-supported top-level setting, not part of the `MAILERS` migration.
 
+**Known limitation (discovered during implementation, confirmed against [Render's own changelog](https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports), accepted risk — GH #15)**: Render blocks outbound traffic to SMTP ports 25/465/587 for free-tier web services (since 2025-09-26); `render.yaml`'s `stay-recon` service is `plan: free`. This means the SMTP backend configured above cannot actually deliver email on the current live deploy — a live password-reset request will hang the SMTP connection until gunicorn's worker times it out, not silently succeed or fail fast. This is a platform network policy, not a DNS/domain/SPF/DKIM issue. `MAILERS` itself is real, correctly-wired Django 6.1 machinery (verified directly against the installed `django/core/mail/handler.py` — `OPTIONS` are passed as backend constructor kwargs as documented) — the bug is the transport choice (SMTP), not the settings mechanism. Fix (switch to Resend's HTTPS API, or upgrade the Render plan) is deferred past the MVP deadline per user decision (2026-09-13) and tracked in GH #15, not implemented in this phase.
+
 #### 2. Password-reset templates
 
 **File**: `templates/registration/password_reset_form.html`, `password_reset_done.html`, `password_reset_email.html`, `password_reset_subject.txt`, `password_reset_confirm.html`, `password_reset_complete.html` (new)
@@ -388,8 +391,8 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [x] 4.1 Reset request for existing email produces one `mail.outbox` entry
-- [x] 4.2 Reset request for non-existent email doesn't error or leak existence
+- [x] 4.1 Reset request for existing email produces one `mail.outbox` entry — c9bb964
+- [x] 4.2 Reset request for non-existent email doesn't error or leak existence — c9bb964
 
 #### Manual
 
