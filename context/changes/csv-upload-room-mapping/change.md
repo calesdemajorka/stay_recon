@@ -1,7 +1,7 @@
 ---
 change_id: csv-upload-room-mapping
 title: Csv upload room mapping
-status: implementing
+status: implemented
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null

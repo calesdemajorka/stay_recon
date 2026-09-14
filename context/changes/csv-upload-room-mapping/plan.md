@@ -310,7 +310,7 @@ Purely additive: a new app and two new tables, no existing data affected. No pro
 
 #### Manual
 
-- [ ] 2.9 Live CSV upload on Render, redirects to mapping step
+- [x] 2.9 Live CSV upload on Render, redirects to mapping step — b4c749c
 
 ### Phase 3: Column mapping
 
@@ -325,25 +325,25 @@ Purely additive: a new app and two new tables, no existing data affected. No pro
 
 #### Manual
 
-- [ ] 3.7 Live column mapping on Render, redirects to preview page 1
+- [x] 3.7 Live column mapping on Render, redirects to preview page 1 — b4c749c
 
 ### Phase 4: Preview, edit, and confirm
 
 #### Automated
 
-- [x] 4.1 Page 1/page 2 show correct row slices
-- [x] 4.2 Correcting a row on page-save clears its error and persists
-- [x] 4.3 Cross-page duplicate not flagged by page-save itself
-- [x] 4.4 Confirm blocks on remaining per-row error, names the page, creates no Rooms
-- [x] 4.5 Confirm blocks on cross-page duplicate, names the rows/pages, creates no Rooms
-- [x] 4.6 Confirm with valid data creates matching Room rows, deletes PendingUpload
-- [x] 4.7 Replace-flow confirm is atomic (no partial state on forced failure)
-- [x] 4.8 Preview/confirm for another organiser's data returns 404
-- [x] 4.9 Mismatched TOTAL_FORMS rejected, not silently accepted
-- [x] 4.10 Confirm with empty mapped_rows blocked, no Rooms created
+- [x] 4.1 Page 1/page 2 show correct row slices — b4c749c
+- [x] 4.2 Correcting a row on page-save clears its error and persists — b4c749c
+- [x] 4.3 Cross-page duplicate not flagged by page-save itself — b4c749c
+- [x] 4.4 Confirm blocks on remaining per-row error, names the page, creates no Rooms — b4c749c
+- [x] 4.5 Confirm blocks on cross-page duplicate, names the rows/pages, creates no Rooms — b4c749c
+- [x] 4.6 Confirm with valid data creates matching Room rows, deletes PendingUpload — b4c749c
+- [x] 4.7 Replace-flow confirm is atomic (no partial state on forced failure) — b4c749c
+- [x] 4.8 Preview/confirm for another organiser's data returns 404 — b4c749c
+- [x] 4.9 Mismatched TOTAL_FORMS rejected, not silently accepted — b4c749c
+- [x] 4.10 Confirm with empty mapped_rows blocked, no Rooms created — b4c749c
 
 #### Manual
 
-- [ ] 4.11 Full happy-path upload→map→multi-page-preview→confirm on Render
-- [ ] 4.12 Malformed row + cross-page duplicate both caught with locatable messages, no 500
-- [ ] 4.13 Re-upload for event with confirmed rooms: warning shown, confirm replaces not appends
+- [x] 4.11 Full happy-path upload→map→multi-page-preview→confirm on Render — b4c749c
+- [x] 4.12 Malformed row + cross-page duplicate both caught with locatable messages, no 500 — b4c749c
+- [x] 4.13 Re-upload for event with confirmed rooms: warning shown, confirm replaces not appends — b4c749c
