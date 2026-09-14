@@ -51,6 +51,25 @@ participants, participant data stays private, and the reconciliation report
 has to be accurate — it's what the organiser hands to the hotel to settle
 the bill.
 
+## CSV format
+
+The room-upload CSV is deliberately format-agnostic on column naming —
+column headers and order don't matter, since after upload you manually map
+which column is which (no auto-detection). Requirements:
+
+- A standard CSV with a **header row** followed by data rows.
+- Max **5000 data rows**; each header value under **200 characters**.
+- Encoding: tries `utf-8-sig` → `cp1252` → `latin-1` in order, so UTF-8
+  (with or without BOM) and common Windows exports both work.
+
+Per-row validation, shown in the preview after mapping:
+
+- **Room number** — required, can't be blank.
+- **Capacity** — must be a whole number (digits only).
+- **Room type** — no validation; any text, including blank.
+- **Room numbers must be unique per event** (case/whitespace-insensitive —
+  `"101"` and `" 101 "` collide), checked once at confirm across all pages.
+
 ## Scope for v1
 
 Deliberately cut to fit a hard two-week deadline: manual CSV column mapping
