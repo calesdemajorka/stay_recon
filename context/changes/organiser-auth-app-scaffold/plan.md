@@ -403,8 +403,8 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Automated
 
-- [ ] 5.1 `check --deploy` clear of cookie/HSTS/SSL-redirect warnings with prod-like env
-- [ ] 5.2 Local `check` still passes with hardening inactive
+- [x] 5.1 `check --deploy` clear of cookie/HSTS/SSL-redirect warnings with prod-like env
+- [x] 5.2 Local `check` still passes with hardening inactive
 
 #### Manual
 

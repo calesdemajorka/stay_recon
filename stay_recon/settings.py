@@ -178,3 +178,19 @@ else:
     }
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+
+
+# Security hardening (production only)
+# https://docs.djangoproject.com/en/6.1/topics/security/
+
+if RENDER_EXTERNAL_HOSTNAME:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    # Render terminates TLS upstream and forwards plain HTTP; without this,
+    # SECURE_SSL_REDIRECT causes an infinite redirect loop.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Conservative one-hour starting value — HSTS is a one-way browser
+    # commitment, worth ratcheting up gradually rather than starting at the
+    # usual one-year value on a domain with no rollback plan yet.
+    SECURE_HSTS_SECONDS = 3600
