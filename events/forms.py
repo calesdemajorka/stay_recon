@@ -9,12 +9,27 @@ DUPLICATE_ERROR = 'An event with this name and these dates already exists.'
 
 
 class EventForm(forms.ModelForm):
-    window_start = forms.DateField(required=False)
-    window_end = forms.DateField(required=False)
+    # type="date" gives a native browser date picker and forces ISO
+    # (YYYY-MM-DD) submission, sidestepping locale-format ambiguity
+    # entirely. format='%Y-%m-%d' is required alongside it: HTML5 date
+    # inputs need their `value` attribute in strict ISO form regardless
+    # of locale, but Django's DateInput defaults to a locale-aware
+    # format (e.g. %m/%d/%Y for en-us) unless told otherwise — without
+    # this, an existing value wouldn't pre-fill correctly when editing.
+    window_start = forms.DateField(
+        required=False, widget=forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'})
+    )
+    window_end = forms.DateField(
+        required=False, widget=forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'})
+    )
 
     class Meta:
         model = Event
         fields = ('name', 'start_date', 'end_date', 'description', 'window_start', 'window_end')
+        widgets = {
+            'start_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'end_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+        }
 
     def __init__(self, *args, organiser=None, **kwargs):
         self.organiser = organiser
