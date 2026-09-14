@@ -316,12 +316,12 @@ Purely additive: a new app and two new tables, no existing data affected. No pro
 
 #### Automated
 
-- [x] 3.1 Mapping form populated with actual CSV headers
-- [x] 3.2 Submitting mapping computes mapped_rows correctly
-- [x] 3.3 Missing room number flagged per-row
-- [x] 3.4 Non-numeric capacity flagged per-row
-- [x] 3.5 Valid row has empty errors dict
-- [x] 3.6 Mapping for another organiser's data returns 404
+- [x] 3.1 Mapping form populated with actual CSV headers — ccfd679
+- [x] 3.2 Submitting mapping computes mapped_rows correctly — ccfd679
+- [x] 3.3 Missing room number flagged per-row — ccfd679
+- [x] 3.4 Non-numeric capacity flagged per-row — ccfd679
+- [x] 3.5 Valid row has empty errors dict — ccfd679
+- [x] 3.6 Mapping for another organiser's data returns 404 — ccfd679
 
 #### Manual
 
@@ -331,16 +331,16 @@ Purely additive: a new app and two new tables, no existing data affected. No pro
 
 #### Automated
 
-- [ ] 4.1 Page 1/page 2 show correct row slices
-- [ ] 4.2 Correcting a row on page-save clears its error and persists
-- [ ] 4.3 Cross-page duplicate not flagged by page-save itself
-- [ ] 4.4 Confirm blocks on remaining per-row error, names the page, creates no Rooms
-- [ ] 4.5 Confirm blocks on cross-page duplicate, names the rows/pages, creates no Rooms
-- [ ] 4.6 Confirm with valid data creates matching Room rows, deletes PendingUpload
-- [ ] 4.7 Replace-flow confirm is atomic (no partial state on forced failure)
-- [ ] 4.8 Preview/confirm for another organiser's data returns 404
-- [ ] 4.9 Mismatched TOTAL_FORMS rejected, not silently accepted
-- [ ] 4.10 Confirm with empty mapped_rows blocked, no Rooms created
+- [x] 4.1 Page 1/page 2 show correct row slices
+- [x] 4.2 Correcting a row on page-save clears its error and persists
+- [x] 4.3 Cross-page duplicate not flagged by page-save itself
+- [x] 4.4 Confirm blocks on remaining per-row error, names the page, creates no Rooms
+- [x] 4.5 Confirm blocks on cross-page duplicate, names the rows/pages, creates no Rooms
+- [x] 4.6 Confirm with valid data creates matching Room rows, deletes PendingUpload
+- [x] 4.7 Replace-flow confirm is atomic (no partial state on forced failure)
+- [x] 4.8 Preview/confirm for another organiser's data returns 404
+- [x] 4.9 Mismatched TOTAL_FORMS rejected, not silently accepted
+- [x] 4.10 Confirm with empty mapped_rows blocked, no Rooms created
 
 #### Manual
 
