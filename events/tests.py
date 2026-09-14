@@ -5,7 +5,9 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
 
+from .forms import EventForm
 from .models import Event
+from .views import _save_or_duplicate_error
 
 User = get_user_model()
 
@@ -94,6 +96,32 @@ class EventCreateViewTests(TestCase):
         self.assertFalse(response.context['form'].is_valid())
         self.assertEqual(Event.objects.count(), 0)
 
+    def test_window_start_after_window_end_rejected(self):
+        response = self._post(window_start='2026-09-25', window_end='2026-09-20')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['form'].is_valid())
+        self.assertEqual(Event.objects.count(), 0)
+
+    def test_save_race_converts_integrity_error_to_duplicate_field_error(self):
+        # Simulates two concurrent submissions: the form's pre-save
+        # duplicate check passes (no conflicting row exists yet), but a
+        # conflicting row lands before this form's save() runs.
+        form = EventForm(
+            data={
+                'name': 'Team Offsite',
+                'start_date': '2026-10-01',
+                'end_date': '2026-10-02',
+                'description': '',
+            },
+            organiser=self.organiser,
+        )
+        self.assertTrue(form.is_valid())
+        make_event(organiser=self.organiser)  # the "concurrent" submission lands first
+
+        self.assertFalse(_save_or_duplicate_error(form))
+        self.assertIn('An event with this name and these dates already exists.', form.errors['name'])
+        self.assertEqual(Event.objects.count(), 1)
+
 
 class DashboardAndEditViewTests(TestCase):
     def setUp(self):
@@ -125,7 +153,7 @@ class DashboardAndEditViewTests(TestCase):
         response = self.client.get(reverse('event_edit', args=[other_event.pk]))
         self.assertEqual(response.status_code, 404)
 
-    def test_noop_edit_succeeds(self):
+    def test_edit_with_unchanged_name_and_dates_succeeds(self):
         response = self.client.post(reverse('event_edit', args=[self.event.pk]), {
             'name': self.event.name,
             'start_date': self.event.start_date,

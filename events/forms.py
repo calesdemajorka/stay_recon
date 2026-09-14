@@ -5,6 +5,8 @@ from django.db.models.functions import Lower, Trim
 
 from .models import Event
 
+DUPLICATE_ERROR = 'An event with this name and these dates already exists.'
+
 
 class EventForm(forms.ModelForm):
     window_start = forms.DateField(required=False)
@@ -54,7 +56,7 @@ class EventForm(forms.ModelForm):
             if self.instance.pk:
                 duplicates = duplicates.exclude(pk=self.instance.pk)
             if duplicates.exists():
-                self.add_error('name', 'An event with this name and these dates already exists.')
+                self.add_error('name', DUPLICATE_ERROR)
 
         return cleaned_data
 

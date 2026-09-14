@@ -118,7 +118,7 @@ The form, view, and template an organiser uses to create an event — including 
 
 **Intent**: Render the form, inject the logged-in organiser, save, and redirect to the dashboard where the new event now appears.
 
-**Contract**: `event_create` view, `@login_required`; instantiates `EventForm(organiser=request.user)`; on valid POST, sets `event.organiser = request.user` before saving (`form.save(commit=False)`), redirects to `dashboard`.
+**Contract**: `event_create` view, `@login_required`; instantiates `EventForm(organiser=request.user)`; on valid POST, calls `form.save()` and redirects to `dashboard`. `EventForm.save()` itself sets `event.organiser` from the `organiser` kwarg it was constructed with — centralizing the assignment there means `event_edit` (Phase 3) reuses the identical logic instead of duplicating it per view.
 
 #### 3. URL + template
 
