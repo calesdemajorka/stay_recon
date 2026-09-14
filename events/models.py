@@ -29,11 +29,16 @@ class Event(models.Model):
         ]
 
     def clean(self):
-        if self.end_date < self.start_date:
+        # Model.clean() runs unconditionally from ModelForm._post_clean(),
+        # even when a form field (e.g. an unparseable date) already failed
+        # validation and left its instance attribute as None — guard every
+        # comparison so that case surfaces as a normal form error, not a
+        # TypeError crash.
+        if self.start_date and self.end_date and self.end_date < self.start_date:
             raise ValidationError('End date cannot be before start date.')
-        if self.window_start > self.window_end:
+        if self.window_start and self.window_end and self.window_start > self.window_end:
             raise ValidationError('Booking window start cannot be after window end.')
-        if self.window_end > self.start_date:
+        if self.window_end and self.start_date and self.window_end > self.start_date:
             raise ValidationError('Booking window must close by the event start date.')
 
     def __str__(self):

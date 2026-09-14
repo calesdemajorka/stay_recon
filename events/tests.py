@@ -40,6 +40,13 @@ class EventModelTests(TestCase):
         make_event(organiser=self.other_organiser)
         self.assertEqual(Event.objects.count(), 2)
 
+    def test_clean_does_not_crash_with_unset_dates(self):
+        # Model.clean() runs unconditionally from ModelForm._post_clean(),
+        # even when start_date/end_date failed to parse upstream and are
+        # still None on the instance — must not raise TypeError.
+        event = Event(name='sss', organiser=self.organiser)
+        event.clean()  # should not raise
+
 
 class EventCreateViewTests(TestCase):
     def setUp(self):
@@ -94,6 +101,13 @@ class EventCreateViewTests(TestCase):
         response = self._post(window_start='2026-09-20', window_end='2026-10-02')
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context['form'].is_valid())
+        self.assertEqual(Event.objects.count(), 0)
+
+    def test_unparseable_date_format_shows_form_error_not_500(self):
+        response = self._post(start_date='16.12.2026', end_date='17.12.2026')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['form'].is_valid())
+        self.assertIn('Enter a valid date.', response.context['form'].errors['start_date'])
         self.assertEqual(Event.objects.count(), 0)
 
     def test_window_start_after_window_end_rejected(self):
