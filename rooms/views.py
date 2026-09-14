@@ -7,7 +7,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from events.models import Event
 
-from .forms import MAX_HEADER_LENGTH, MAX_ROWS, CSVUploadForm
+from .forms import (
+    MAX_HEADER_LENGTH,
+    MAX_ROWS,
+    ColumnMappingForm,
+    CSVUploadForm,
+    compute_mapped_rows,
+)
 from .models import PendingUpload
 
 DECODE_ENCODINGS = ('utf-8-sig', 'cp1252', 'latin-1')
@@ -82,6 +88,28 @@ def csv_upload(request, event_pk):
 
 @login_required
 def csv_map_columns(request, event_pk):
-    # Placeholder redirect target for Phase 2; fully implemented in Phase 3.
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    pending = get_object_or_404(PendingUpload, organiser=request.user, event=event)
+
+    if request.method == 'POST':
+        form = ColumnMappingForm(request.POST, headers=pending.headers)
+        if form.is_valid():
+            pending.column_mapping = {
+                'room_number': form.cleaned_data['room_number'],
+                'room_type': form.cleaned_data['room_type'],
+                'capacity': form.cleaned_data['capacity'],
+            }
+            pending.mapped_rows = compute_mapped_rows(pending.raw_rows, pending.column_mapping)
+            pending.save()
+            return redirect('rooms_preview', event_pk=event.pk)
+    else:
+        form = ColumnMappingForm(headers=pending.headers)
+
+    return render(request, 'rooms/csv_map_columns.html', {'form': form, 'event': event})
+
+
+@login_required
+def csv_preview(request, event_pk):
+    # Placeholder redirect target for Phase 3; fully implemented in Phase 4.
     get_object_or_404(Event, pk=event_pk, organiser=request.user)
-    return HttpResponse('Column mapping — coming in Phase 3')
+    return HttpResponse('Preview, edit, and confirm — coming in Phase 4')

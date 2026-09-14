@@ -142,3 +142,62 @@ class CSVUploadViewTests(TestCase):
         response = self._upload(garbage, filename='not-a-csv.bin')
         self.assertEqual(response.status_code, 200)
         self.assertFalse(PendingUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
+
+
+class ColumnMappingViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.pending = PendingUpload.objects.create(
+            organiser=self.organiser,
+            event=self.event,
+            headers=['Room No', 'Type', 'Cap'],
+            raw_rows=[
+                {'Room No': '101', 'Type': 'Single', 'Cap': '2'},
+                {'Room No': '', 'Type': 'Double', 'Cap': '3'},
+                {'Room No': '103', 'Type': 'Suite', 'Cap': 'four'},
+            ],
+        )
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def test_form_populated_with_actual_headers(self):
+        response = self.client.get(reverse('rooms_map_columns', args=[self.event.pk]))
+        choices = response.context['form'].fields['room_number'].choices
+        self.assertEqual([c[0] for c in choices], ['Room No', 'Type', 'Cap'])
+
+    def test_submitting_mapping_computes_mapped_rows(self):
+        response = self.client.post(reverse('rooms_map_columns', args=[self.event.pk]), {
+            'room_number': 'Room No', 'room_type': 'Type', 'capacity': 'Cap',
+        })
+        self.assertRedirects(response, reverse('rooms_preview', args=[self.event.pk]))
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.mapped_rows[0]['room_number'], '101')
+        self.assertEqual(self.pending.mapped_rows[0]['room_type'], 'Single')
+        self.assertEqual(self.pending.mapped_rows[0]['capacity'], '2')
+
+    def test_missing_room_number_flagged(self):
+        self.client.post(reverse('rooms_map_columns', args=[self.event.pk]), {
+            'room_number': 'Room No', 'room_type': 'Type', 'capacity': 'Cap',
+        })
+        self.pending.refresh_from_db()
+        self.assertIn('room_number', self.pending.mapped_rows[1]['errors'])
+
+    def test_non_numeric_capacity_flagged(self):
+        self.client.post(reverse('rooms_map_columns', args=[self.event.pk]), {
+            'room_number': 'Room No', 'room_type': 'Type', 'capacity': 'Cap',
+        })
+        self.pending.refresh_from_db()
+        self.assertIn('capacity', self.pending.mapped_rows[2]['errors'])
+
+    def test_valid_row_has_empty_errors(self):
+        self.client.post(reverse('rooms_map_columns', args=[self.event.pk]), {
+            'room_number': 'Room No', 'room_type': 'Type', 'capacity': 'Cap',
+        })
+        self.pending.refresh_from_db()
+        self.assertEqual(self.pending.mapped_rows[0]['errors'], {})
+
+    def test_mapping_for_another_organisers_data_returns_404(self):
+        self.client.login(username='other@example.com', password='testpass123')
+        response = self.client.get(reverse('rooms_map_columns', args=[self.event.pk]))
+        self.assertEqual(response.status_code, 404)

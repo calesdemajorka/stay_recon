@@ -299,14 +299,14 @@ Purely additive: a new app and two new tables, no existing data affected. No pro
 
 #### Automated
 
-- [x] 2.1 Valid UTF-8 CSV creates PendingUpload with matching headers/raw_rows
-- [x] 2.2 UTF-8 BOM stripped from first header
-- [x] 2.3 cp1252/latin-1 CSV decoded via fallback chain
-- [x] 2.4 Second upload replaces existing PendingUpload, not duplicates
-- [x] 2.5 Upload for event with confirmed rooms rejected without confirm_replace
-- [x] 2.6 Same upload with confirm_replace checked succeeds
-- [x] 2.7 Upload for another organiser's event returns 404
-- [x] 2.8 Non-CSV binary upload rejected with friendly error, no PendingUpload created
+- [x] 2.1 Valid UTF-8 CSV creates PendingUpload with matching headers/raw_rows — 0060125
+- [x] 2.2 UTF-8 BOM stripped from first header — 0060125
+- [x] 2.3 cp1252/latin-1 CSV decoded via fallback chain — 0060125
+- [x] 2.4 Second upload replaces existing PendingUpload, not duplicates — 0060125
+- [x] 2.5 Upload for event with confirmed rooms rejected without confirm_replace — 0060125
+- [x] 2.6 Same upload with confirm_replace checked succeeds — 0060125
+- [x] 2.7 Upload for another organiser's event returns 404 — 0060125
+- [x] 2.8 Non-CSV binary upload rejected with friendly error, no PendingUpload created — 0060125
 
 #### Manual
 
@@ -316,12 +316,12 @@ Purely additive: a new app and two new tables, no existing data affected. No pro
 
 #### Automated
 
-- [ ] 3.1 Mapping form populated with actual CSV headers
-- [ ] 3.2 Submitting mapping computes mapped_rows correctly
-- [ ] 3.3 Missing room number flagged per-row
-- [ ] 3.4 Non-numeric capacity flagged per-row
-- [ ] 3.5 Valid row has empty errors dict
-- [ ] 3.6 Mapping for another organiser's data returns 404
+- [x] 3.1 Mapping form populated with actual CSV headers
+- [x] 3.2 Submitting mapping computes mapped_rows correctly
+- [x] 3.3 Missing room number flagged per-row
+- [x] 3.4 Non-numeric capacity flagged per-row
+- [x] 3.5 Valid row has empty errors dict
+- [x] 3.6 Mapping for another organiser's data returns 404
 
 #### Manual
 
