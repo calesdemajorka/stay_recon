@@ -7,4 +7,7 @@
     {{ form.as_p }}
     <button type="submit">{% if form.instance.pk %}Save{% else %}Create event{% endif %}</button>
   </form>
+  {% if form.instance.pk %}
+    <p><a href="{% url 'rooms_upload' event_pk=form.instance.pk %}">Upload room CSV</a></p>
+  {% endif %}
 {% endblock %}

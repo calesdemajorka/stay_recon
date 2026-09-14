@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Upload room CSV — StayRecon{% endblock %}
+{% block content %}
+  <h1>Upload room CSV</h1>
+  <p>Event: {{ event.name }}</p>
+  {% if existing_room_count %}
+    <p><strong>This event already has {{ existing_room_count }} confirmed room(s).</strong> Uploading a new CSV will replace them.</p>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+  </form>
+{% endblock %}

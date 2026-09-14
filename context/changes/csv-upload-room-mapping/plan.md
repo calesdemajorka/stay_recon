@@ -284,29 +284,29 @@ Purely additive: a new app and two new tables, no existing data affected. No pro
 
 #### Automated
 
-- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations
-- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3`
-- [x] 1.3 `manage.py check` passes
-- [x] 1.4 Room duplicate constraint fires per-event, not across events
-- [x] 1.5 PendingUpload JSON fields round-trip correctly
-- [x] 1.6 PendingUpload unique-per-(organiser,event) constraint fires
+- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations — 2c48819
+- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3` — 2c48819
+- [x] 1.3 `manage.py check` passes — 2c48819
+- [x] 1.4 Room duplicate constraint fires per-event, not across events — 2c48819
+- [x] 1.5 PendingUpload JSON fields round-trip correctly — 2c48819
+- [x] 1.6 PendingUpload unique-per-(organiser,event) constraint fires — 2c48819
 
 #### Manual
 
-- [x] 1.7 `Room` and `PendingUpload` appear in `/admin/` with expected columns
+- [x] 1.7 `Room` and `PendingUpload` appear in `/admin/` with expected columns — 2c48819
 
 ### Phase 2: CSV upload
 
 #### Automated
 
-- [ ] 2.1 Valid UTF-8 CSV creates PendingUpload with matching headers/raw_rows
-- [ ] 2.2 UTF-8 BOM stripped from first header
-- [ ] 2.3 cp1252/latin-1 CSV decoded via fallback chain
-- [ ] 2.4 Second upload replaces existing PendingUpload, not duplicates
-- [ ] 2.5 Upload for event with confirmed rooms rejected without confirm_replace
-- [ ] 2.6 Same upload with confirm_replace checked succeeds
-- [ ] 2.7 Upload for another organiser's event returns 404
-- [ ] 2.8 Non-CSV binary upload rejected with friendly error, no PendingUpload created
+- [x] 2.1 Valid UTF-8 CSV creates PendingUpload with matching headers/raw_rows
+- [x] 2.2 UTF-8 BOM stripped from first header
+- [x] 2.3 cp1252/latin-1 CSV decoded via fallback chain
+- [x] 2.4 Second upload replaces existing PendingUpload, not duplicates
+- [x] 2.5 Upload for event with confirmed rooms rejected without confirm_replace
+- [x] 2.6 Same upload with confirm_replace checked succeeds
+- [x] 2.7 Upload for another organiser's event returns 404
+- [x] 2.8 Non-CSV binary upload rejected with friendly error, no PendingUpload created
 
 #### Manual
 

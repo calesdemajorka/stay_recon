@@ -1,11 +1,15 @@
+import io
 from datetime import date
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from django.urls import reverse
 
 from events.models import Event
 
+from .forms import MAX_ROWS
 from .models import PendingUpload, Room
 
 User = get_user_model()
@@ -67,3 +71,74 @@ class PendingUploadModelTests(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 PendingUpload.objects.create(organiser=self.organiser, event=self.event)
+
+
+class CSVUploadViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def _upload(self, content_bytes, filename='rooms.csv', **extra):
+        data = {'csv_file': SimpleUploadedFile(filename, content_bytes)}
+        data.update(extra)
+        return self.client.post(reverse('rooms_upload', args=[self.event.pk]), data)
+
+    def test_valid_utf8_csv_creates_pending_upload(self):
+        csv_bytes = 'Room No,Type,Cap\n101,Single,2\n102,Double,3\n'.encode('utf-8')
+        response = self._upload(csv_bytes)
+        self.assertRedirects(response, reverse('rooms_map_columns', args=[self.event.pk]))
+        pending = PendingUpload.objects.get(organiser=self.organiser, event=self.event)
+        self.assertEqual(pending.headers, ['Room No', 'Type', 'Cap'])
+        self.assertEqual(pending.raw_rows[0]['Room No'], '101')
+
+    def test_bom_stripped_from_first_header(self):
+        csv_bytes = 'Room No,Type,Cap\n101,Single,2\n'.encode('utf-8-sig')
+        self._upload(csv_bytes)
+        pending = PendingUpload.objects.get(organiser=self.organiser, event=self.event)
+        self.assertEqual(pending.headers[0], 'Room No')
+
+    def test_cp1252_csv_decoded_via_fallback(self):
+        csv_text = 'Room No,Type,Cap\n101,Suite – Deluxe,2\n'
+        csv_bytes = csv_text.encode('cp1252')
+        self._upload(csv_bytes)
+        pending = PendingUpload.objects.get(organiser=self.organiser, event=self.event)
+        self.assertEqual(pending.raw_rows[0]['Type'], 'Suite – Deluxe')
+
+    def test_second_upload_replaces_existing_pending_upload(self):
+        self._upload('Room No,Type,Cap\n101,Single,2\n'.encode('utf-8'))
+        self._upload('Room No,Type,Cap\n201,Double,4\n'.encode('utf-8'))
+        self.assertEqual(PendingUpload.objects.filter(organiser=self.organiser, event=self.event).count(), 1)
+        pending = PendingUpload.objects.get(organiser=self.organiser, event=self.event)
+        self.assertEqual(pending.raw_rows[0]['Room No'], '201')
+
+    def test_upload_for_event_with_confirmed_rooms_rejected_without_confirm(self):
+        Room.objects.create(event=self.event, room_number='101', room_type='Single', capacity=2)
+        response = self._upload('Room No,Type,Cap\n201,Double,4\n'.encode('utf-8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context['form'], 'confirm_replace', response.context['form'].errors['confirm_replace'])
+        self.assertFalse(PendingUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
+
+    def test_upload_with_confirm_replace_checked_succeeds(self):
+        Room.objects.create(event=self.event, room_number='101', room_type='Single', capacity=2)
+        response = self._upload('Room No,Type,Cap\n201,Double,4\n'.encode('utf-8'), confirm_replace='on')
+        self.assertRedirects(response, reverse('rooms_map_columns', args=[self.event.pk]))
+        self.assertTrue(PendingUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
+
+    def test_upload_for_another_organisers_event_returns_404(self):
+        other_event = make_event(organiser=self.other_organiser, name='Other', start_date=date(2027, 2, 1), end_date=date(2027, 2, 2), window_start=date(2027, 1, 18), window_end=date(2027, 1, 29))
+        response = self.client.post(
+            reverse('rooms_upload', args=[other_event.pk]),
+            {'csv_file': SimpleUploadedFile('rooms.csv', b'Room No,Type,Cap\n101,Single,2\n')},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_non_csv_binary_upload_rejected(self):
+        # Simulates a wrong-file-type upload (e.g. .xlsx renamed .csv): a
+        # long run of bytes with no comma/newline, decoding via the latin-1
+        # fallback into one implausibly-long "header" rather than raising.
+        garbage = b'\x00\x01\x02\x03\xff\xfe' * 100
+        response = self._upload(garbage, filename='not-a-csv.bin')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(PendingUpload.objects.filter(organiser=self.organiser, event=self.event).exists())

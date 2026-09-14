@@ -19,6 +19,7 @@ from django.urls import include, path
 
 from accounts.views import dashboard, signup
 from events.views import event_create, event_edit
+from rooms.views import csv_map_columns, csv_upload
 
 from .views import health, index
 
@@ -31,4 +32,6 @@ urlpatterns = [
     path('signup/', signup, name='signup'),
     path('events/create/', event_create, name='event_create'),
     path('events/<int:pk>/edit/', event_edit, name='event_edit'),
+    path('events/<int:event_pk>/rooms/upload/', csv_upload, name='rooms_upload'),
+    path('events/<int:event_pk>/rooms/map/', csv_map_columns, name='rooms_map_columns'),
 ]
