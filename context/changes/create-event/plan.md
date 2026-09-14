@@ -260,7 +260,7 @@ Purely additive: a new app and a new table, no existing data affected. No produc
 
 #### Manual
 
-- [x] 2.6 Live event creation on Render, redirects to dashboard
+- [x] 2.6 Live event creation on Render, redirects to dashboard — f05502c
 
 ### Phase 3: Event list & edit
 
@@ -274,5 +274,5 @@ Purely additive: a new app and a new table, no existing data affected. No produc
 
 #### Manual
 
-- [x] 3.6 Live create + list + edit round trip on Render
-- [x] 3.7 Second organiser sees no cross-account events, edit URL 404s
+- [x] 3.6 Live create + list + edit round trip on Render — f05502c
+- [x] 3.7 Second organiser sees no cross-account events, edit URL 404s — f05502c
