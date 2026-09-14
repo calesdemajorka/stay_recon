@@ -385,7 +385,7 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Manual
 
-- [x] 3.4 Live signup walkthrough on Render
+- [x] 3.4 Live signup walkthrough on Render — 1836f2b
 
 ### Phase 4: Password reset via Resend
 
