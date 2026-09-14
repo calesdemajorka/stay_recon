@@ -12,7 +12,7 @@ services:
     buildCommand: bash build.sh
     startCommand: uv run gunicorn stay_recon.wsgi:application
     healthCheckPath: /healthz/
-    autoDeployTrigger: commit
+    autoDeployTrigger: checksPass
     buildFilter:
       paths:
         - manage.py

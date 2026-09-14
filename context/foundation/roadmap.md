@@ -70,7 +70,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Backend / API:** partial — Django 6.1 project scaffold exists (`manage.py`, `stay_recon/` config package), but no domain app has been created yet; `INSTALLED_APPS` is Django defaults only.
 - **Data:** partial — Postgres is live on Render (free tier); `DATABASE_URL` wired via `dj-database-url`. Only Django's own built-in migrations (`admin`, `auth`, `contenttypes`, `sessions`) have run — no domain schema exists.
 - **Auth:** absent — `django.contrib.auth` is installed (Django default) but unused: no custom login flow, no OAuth/passwordless, no participant access-link/token model, no staff role scoping. None of the PRD's three-role access model is implemented.
-- **Deploy / infra:** present — Render web service + Postgres live and verified (`https://stay-recon.onrender.com`), `build.sh`, `render.yaml` (with `buildFilter` and `autoDeployTrigger: commit`). See `context/deployment/deploy-plan.md` for full operational detail, including a tracked free-tier-to-paid-tier upgrade trigger (before any real participant/organiser data or usage).
+- **Deploy / infra:** present — Render web service + Postgres live and verified (`https://stay-recon.onrender.com`), `build.sh`, `render.yaml` (with `buildFilter` and `autoDeployTrigger: checksPass`, gated on `.github/workflows/ci.yml` — see `context/changes/gated-render-deploy/`). See `context/deployment/deploy-plan.md` for full operational detail, including a tracked free-tier-to-paid-tier upgrade trigger (before any real participant/organiser data or usage).
 - **Observability:** absent — no logging/error-tracking/metrics library beyond Django and Render's own platform logs. Not currently required by any PRD signal.
 
 ## Foundations
