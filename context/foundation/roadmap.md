@@ -42,7 +42,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 | ---- | ------------------------------------- | ----------------------------------------------------------------------------- | --------------------- | -------------------------- | -------- |
 | F-01 | organiser-auth-app-scaffold           | (foundation) Django app scaffold exists; organiser can log in                 | —                      | Access Control (Organiser) | done |
 | F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | proposed |
-| S-01 | create-event                          | Organiser can create a new event (duplicate name+date blocked)                | F-01                  | FR-001                     | in-progress |
+| S-01 | create-event                          | Organiser can create a new event (duplicate name+date blocked)                | F-01                  | FR-001                     | done |
 | S-02 | csv-upload-room-mapping               | Organiser can upload a hotel CSV, map columns, and confirm a normalized room list | S-01, F-01          | FR-002                     | proposed |
 | S-03 | participant-staff-lists-and-links     | Organiser can add validated participant/staff lists and get a unique access link per person | S-01, F-01, F-02 | FR-003, FR-004             | proposed |
 | S-04 | participant-books-via-link            | Participant sees available rooms (one suggested) via their link and books one | S-02, S-03, F-02      | US-01, FR-007, FR-014, FR-008 | proposed |
@@ -113,7 +113,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Smallest possible first vertical slice (single FR, no downstream data yet) — proves F-01's login + app scaffold actually works end-to-end before anything heavier is built on top.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-02: Organiser uploads and maps a hotel CSV
 
@@ -252,3 +252,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 ## Done
 
 - **F-01: (foundation) A Django app exists to hold domain models/views, and an organiser can log in with a single auth method and reach an empty, account-scoped dashboard.** — Archived 2026-09-14 → `context/archive/2026-09-11-organiser-auth-app-scaffold/`. Lesson: —.
+- **S-01: Organiser can create a new event; creating a duplicate (same name + date) is blocked, editing an existing event is never blocking.** — Archived 2026-09-14 → `context/archive/2026-09-14-create-event/`. Lesson: —.
