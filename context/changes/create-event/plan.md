@@ -238,25 +238,25 @@ Purely additive: a new app and a new table, no existing data affected. No produc
 
 #### Automated
 
-- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations
-- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3`
-- [x] 1.3 `manage.py check` passes
-- [x] 1.4 Duplicate constraint fires for same organiser, normalized name, dates
-- [x] 1.5 Same name/dates across different organisers succeeds for both
+- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations — b4fb3a1
+- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3` — b4fb3a1
+- [x] 1.3 `manage.py check` passes — b4fb3a1
+- [x] 1.4 Duplicate constraint fires for same organiser, normalized name, dates — b4fb3a1
+- [x] 1.5 Same name/dates across different organisers succeeds for both — b4fb3a1
 
 #### Manual
 
-- [x] 1.6 `Event` appears in `/admin/` with expected columns
+- [x] 1.6 `Event` appears in `/admin/` with expected columns — b4fb3a1
 
 ### Phase 2: Create event
 
 #### Automated
 
-- [ ] 2.1 Valid submission with blank window fields computes defaults from `start_date`
-- [ ] 2.2 Valid submission with explicit window fields keeps those values
-- [ ] 2.3 Duplicate submission shows field error, creates no row
-- [ ] 2.4 `end_date` before `start_date` rejected
-- [ ] 2.5 `window_end` after `start_date` rejected
+- [x] 2.1 Valid submission with blank window fields computes defaults from `start_date`
+- [x] 2.2 Valid submission with explicit window fields keeps those values
+- [x] 2.3 Duplicate submission shows field error, creates no row
+- [x] 2.4 `end_date` before `start_date` rejected
+- [x] 2.5 `window_end` after `start_date` rejected
 
 #### Manual
 
