@@ -191,6 +191,22 @@ Both are technically valid; option 1 is strictly smaller for the stated
 goal. This research does not choose between them — that's a decision for
 `/10x-plan`.
 
+## Follow-up Verification (2026-09-14, post-implementation)
+
+The commit that flipped `autoDeployTrigger` to `checksPass` (`a1bf2e4`)
+deployed to `live` at `16:16:38`, roughly 10 seconds *before* its own
+GitHub check run (`check-runs` for that commit) completed at `16:16:48`.
+This is a self-referential edge case: Render evaluates the trigger mode in
+effect at webhook-receipt time, which for this specific push was still the
+old `commit` rule (the Blueprint sync that applies the new `checksPass`
+value happens as part of processing the same push, not before it). So the
+commit that *introduces* the gate does not itself get gated — expected,
+not a bug, but worth recording so it isn't mistaken for the feature not
+working. Confirmed via `mcp__plugin_render_render__get_service` immediately
+after that push that `autoDeployTrigger` is now `checksPass` on the live
+service config. The real test is whether the *next* commit's deploy waits
+for its own check — verified separately (see below).
+
 ## Open Questions
 
 - If option 2 is chosen: should `main` require a PR (with review) to merge
