@@ -93,3 +93,69 @@ class EventCreateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context['form'].is_valid())
         self.assertEqual(Event.objects.count(), 0)
+
+
+class DashboardAndEditViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def test_dashboard_shows_own_events_ordered_by_start_date(self):
+        make_event(
+            organiser=self.organiser,
+            name='Second Event',
+            start_date=date(2026, 9, 1),
+            end_date=date(2026, 9, 2),
+            window_start=date(2026, 8, 18),
+            window_end=date(2026, 8, 29),
+        )
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(list(response.context['events']), list(self.organiser.events.order_by('start_date')))
+
+    def test_dashboard_hides_other_organisers_events(self):
+        make_event(organiser=self.other_organiser, name='Other Org Event')
+        response = self.client.get(reverse('dashboard'))
+        names = [e.name for e in response.context['events']]
+        self.assertNotIn('Other Org Event', names)
+
+    def test_edit_view_404s_for_non_owned_event(self):
+        other_event = make_event(organiser=self.other_organiser, name='Other Org Event')
+        response = self.client.get(reverse('event_edit', args=[other_event.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_noop_edit_succeeds(self):
+        response = self.client.post(reverse('event_edit', args=[self.event.pk]), {
+            'name': self.event.name,
+            'start_date': self.event.start_date,
+            'end_date': self.event.end_date,
+            'description': 'updated description',
+            'window_start': self.event.window_start,
+            'window_end': self.event.window_end,
+        })
+        self.assertRedirects(response, reverse('dashboard'))
+        self.event.refresh_from_db()
+        self.assertEqual(self.event.description, 'updated description')
+
+    def test_edit_colliding_with_different_event_rejected(self):
+        other = make_event(
+            organiser=self.organiser,
+            name='Other Event',
+            start_date=date(2026, 11, 1),
+            end_date=date(2026, 11, 2),
+            window_start=date(2026, 10, 18),
+            window_end=date(2026, 10, 29),
+        )
+        response = self.client.post(reverse('event_edit', args=[self.event.pk]), {
+            'name': other.name,
+            'start_date': other.start_date,
+            'end_date': other.end_date,
+            'description': '',
+            'window_start': other.window_start,
+            'window_end': other.window_end,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(
+            response.context['form'], 'name', 'An event with this name and these dates already exists.'
+        )

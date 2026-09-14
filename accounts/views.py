@@ -7,7 +7,8 @@ from .forms import SignupForm
 
 @login_required
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    events = request.user.events.order_by('start_date')
+    return render(request, 'accounts/dashboard.html', {'events': events})
 
 
 def signup(request):

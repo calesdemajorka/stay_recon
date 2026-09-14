@@ -252,11 +252,11 @@ Purely additive: a new app and a new table, no existing data affected. No produc
 
 #### Automated
 
-- [x] 2.1 Valid submission with blank window fields computes defaults from `start_date`
-- [x] 2.2 Valid submission with explicit window fields keeps those values
-- [x] 2.3 Duplicate submission shows field error, creates no row
-- [x] 2.4 `end_date` before `start_date` rejected
-- [x] 2.5 `window_end` after `start_date` rejected
+- [x] 2.1 Valid submission with blank window fields computes defaults from `start_date` — bb09e4e
+- [x] 2.2 Valid submission with explicit window fields keeps those values — bb09e4e
+- [x] 2.3 Duplicate submission shows field error, creates no row — bb09e4e
+- [x] 2.4 `end_date` before `start_date` rejected — bb09e4e
+- [x] 2.5 `window_end` after `start_date` rejected — bb09e4e
 
 #### Manual
 
@@ -266,11 +266,11 @@ Purely additive: a new app and a new table, no existing data affected. No produc
 
 #### Automated
 
-- [ ] 3.1 Dashboard shows organiser's own events, ordered by `start_date`
-- [ ] 3.2 Dashboard shows none of another organiser's events
-- [ ] 3.3 Edit view 404s for a non-owned event
-- [ ] 3.4 No-op-on-uniqueness edit succeeds
-- [ ] 3.5 Edit colliding with a different existing event is rejected
+- [x] 3.1 Dashboard shows organiser's own events, ordered by `start_date`
+- [x] 3.2 Dashboard shows none of another organiser's events
+- [x] 3.3 Edit view 404s for a non-owned event
+- [x] 3.4 No-op-on-uniqueness edit succeeds
+- [x] 3.5 Edit colliding with a different existing event is rejected
 
 #### Manual
 

@@ -2,7 +2,16 @@
 {% block title %}Dashboard — StayRecon{% endblock %}
 {% block content %}
   <h1>Welcome, {{ request.user.email }}</h1>
-  <p>Your account-scoped dashboard. Nothing to show yet.</p>
+  {% if events %}
+    <ul>
+      {% for event in events %}
+        <li><a href="{% url 'event_edit' event.pk %}">{{ event.name }}</a> — {{ event.start_date }} to {{ event.end_date }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No events yet.</p>
+  {% endif %}
+  <p><a href="{% url 'event_create' %}">Create event</a></p>
   <form method="post" action="{% url 'logout' %}">
     {% csrf_token %}
     <button type="submit">Log out</button>

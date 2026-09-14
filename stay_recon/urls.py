@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from accounts.views import dashboard, signup
-from events.views import event_create
+from events.views import event_create, event_edit
 
 from .views import health, index
 
@@ -30,4 +30,5 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path('signup/', signup, name='signup'),
     path('events/create/', event_create, name='event_create'),
+    path('events/<int:pk>/edit/', event_edit, name='event_edit'),
 ]
