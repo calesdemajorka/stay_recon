@@ -385,7 +385,7 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Manual
 
-- [ ] 3.4 Live signup walkthrough on Render
+- [x] 3.4 Live signup walkthrough on Render
 
 ### Phase 4: Password reset via Resend
 
@@ -396,7 +396,7 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Manual
 
-- [x] 4.3 `RESEND_API_KEY` set in Render dashboard
+- [x] 4.3 `RESEND_API_KEY` set in Render dashboard — aa9af6d
 - [ ] 4.4 Live password-reset walkthrough (request → email → confirm → login)
 
 ### Phase 5: Production security hardening
@@ -408,5 +408,5 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Manual
 
-- [x] 5.3 `curl -IL` on live Render URL shows no redirect loop
-- [x] 5.4 Session cookie has `Secure` flag in browser devtools
+- [x] 5.3 `curl -IL` on live Render URL shows no redirect loop — aa9af6d
+- [x] 5.4 Session cookie has `Secure` flag in browser devtools — aa9af6d
