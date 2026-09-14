@@ -396,17 +396,17 @@ This must happen before Phase 1's deploy, not after (see Critical Implementation
 
 #### Manual
 
-- [ ] 4.3 `RESEND_API_KEY` set in Render dashboard
+- [x] 4.3 `RESEND_API_KEY` set in Render dashboard
 - [ ] 4.4 Live password-reset walkthrough (request → email → confirm → login)
 
 ### Phase 5: Production security hardening
 
 #### Automated
 
-- [x] 5.1 `check --deploy` clear of cookie/HSTS/SSL-redirect warnings with prod-like env
-- [x] 5.2 Local `check` still passes with hardening inactive
+- [x] 5.1 `check --deploy` clear of cookie/HSTS/SSL-redirect warnings with prod-like env — 569b49b
+- [x] 5.2 Local `check` still passes with hardening inactive — 569b49b
 
 #### Manual
 
-- [ ] 5.3 `curl -IL` on live Render URL shows no redirect loop
-- [ ] 5.4 Session cookie has `Secure` flag in browser devtools
+- [x] 5.3 `curl -IL` on live Render URL shows no redirect loop
+- [x] 5.4 Session cookie has `Secure` flag in browser devtools
