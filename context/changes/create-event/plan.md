@@ -260,19 +260,19 @@ Purely additive: a new app and a new table, no existing data affected. No produc
 
 #### Manual
 
-- [ ] 2.6 Live event creation on Render, redirects to dashboard
+- [x] 2.6 Live event creation on Render, redirects to dashboard
 
 ### Phase 3: Event list & edit
 
 #### Automated
 
-- [x] 3.1 Dashboard shows organiser's own events, ordered by `start_date`
-- [x] 3.2 Dashboard shows none of another organiser's events
-- [x] 3.3 Edit view 404s for a non-owned event
-- [x] 3.4 No-op-on-uniqueness edit succeeds
-- [x] 3.5 Edit colliding with a different existing event is rejected
+- [x] 3.1 Dashboard shows organiser's own events, ordered by `start_date` — f5114f6
+- [x] 3.2 Dashboard shows none of another organiser's events — f5114f6
+- [x] 3.3 Edit view 404s for a non-owned event — f5114f6
+- [x] 3.4 No-op-on-uniqueness edit succeeds — f5114f6
+- [x] 3.5 Edit colliding with a different existing event is rejected — f5114f6
 
 #### Manual
 
-- [ ] 3.6 Live create + list + edit round trip on Render
-- [ ] 3.7 Second organiser sees no cross-account events, edit URL 404s
+- [x] 3.6 Live create + list + edit round trip on Render
+- [x] 3.7 Second organiser sees no cross-account events, edit URL 404s
