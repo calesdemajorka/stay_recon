@@ -1,0 +1,10 @@
+Room Number,Room Type,Capacity
+BR001,Single,1
+BR002,Double,2
+,Twin,2
+BR004,Suite,abc
+BR005,Deluxe,3
+BR005,Deluxe,3
+ br005 ,Deluxe,3
+BR008,Double,
+BR009,Single,1
