@@ -19,6 +19,7 @@ services:
         - stay_recon/**
         - accounts/**
         - events/**
+        - rooms/**
         - templates/**
         - build.sh
         - pyproject.toml
