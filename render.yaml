@@ -18,6 +18,7 @@ services:
         - manage.py
         - stay_recon/**
         - accounts/**
+        - templates/**
         - build.sh
         - pyproject.toml
         - uv.lock

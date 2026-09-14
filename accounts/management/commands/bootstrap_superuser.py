@@ -25,6 +25,8 @@ class Command(BaseCommand):
 
         User = get_user_model()
         email = email.lower()
+        # Create-only: rotating DJANGO_SUPERUSER_PASSWORD after the account
+        # already exists has no effect on redeploy.
         if User.objects.filter(email=email).exists():
             self.stdout.write(f'Superuser {email} already exists — skipping.')
             return

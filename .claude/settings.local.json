@@ -6,7 +6,6 @@
       "Bash(git log *)",
       "Bash(git status *)",
       "Bash(git branch *)",
-      "Bash(git checkout *)",
       "Bash(git stash *)",
       "Read",
       "Edit",
@@ -21,7 +20,8 @@
       "Bash(curl *)",
       "Bash(wget *)",
       "Bash(git push *)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git checkout *)"
     ]
   }
 }
