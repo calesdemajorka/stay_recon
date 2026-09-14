@@ -46,6 +46,11 @@ class RoomModelTests(TestCase):
         Room.objects.create(event=self.other_event, room_number='101', room_type='Single', capacity=2)
         self.assertEqual(Room.objects.count(), 2)
 
+    def test_deleting_event_cascades_to_its_rooms(self):
+        Room.objects.create(event=self.event, room_number='101', room_type='Single', capacity=2)
+        self.event.delete()
+        self.assertEqual(Room.objects.count(), 0)
+
 
 class PendingUploadModelTests(TestCase):
     def setUp(self):

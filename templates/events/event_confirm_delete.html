@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Delete event — StayRecon{% endblock %}
+{% block content %}
+  <h1>Delete "{{ event.name }}"?</h1>
+  <p>This permanently removes the event, its uploaded room data, and cannot be undone.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Delete event</button>
+    <a href="{% url 'event_edit' event.pk %}">Cancel</a>
+  </form>
+{% endblock %}

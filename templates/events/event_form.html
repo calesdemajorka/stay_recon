@@ -9,5 +9,6 @@
   </form>
   {% if form.instance.pk %}
     <p><a href="{% url 'rooms_upload' event_pk=form.instance.pk %}">Upload room CSV</a></p>
+    <p><a href="{% url 'event_delete' form.instance.pk %}">Delete event</a></p>
   {% endif %}
 {% endblock %}

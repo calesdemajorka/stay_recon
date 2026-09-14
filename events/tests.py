@@ -180,6 +180,22 @@ class DashboardAndEditViewTests(TestCase):
         self.event.refresh_from_db()
         self.assertEqual(self.event.description, 'updated description')
 
+    def test_delete_confirm_page_does_not_delete(self):
+        response = self.client.get(reverse('event_delete', args=[self.event.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Event.objects.filter(pk=self.event.pk).exists())
+
+    def test_delete_post_removes_event_and_redirects(self):
+        response = self.client.post(reverse('event_delete', args=[self.event.pk]))
+        self.assertRedirects(response, reverse('dashboard'))
+        self.assertFalse(Event.objects.filter(pk=self.event.pk).exists())
+
+    def test_delete_404s_for_non_owned_event(self):
+        other_event = make_event(organiser=self.other_organiser, name='Other Org Event')
+        response = self.client.post(reverse('event_delete', args=[other_event.pk]))
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Event.objects.filter(pk=other_event.pk).exists())
+
     def test_edit_colliding_with_different_event_rejected(self):
         other = make_event(
             organiser=self.organiser,

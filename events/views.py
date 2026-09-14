@@ -41,3 +41,12 @@ def event_edit(request, pk):
     else:
         form = EventForm(instance=event, organiser=request.user)
     return render(request, 'events/event_form.html', {'form': form})
+
+
+@login_required
+def event_delete(request, pk):
+    event = get_object_or_404(Event, pk=pk, organiser=request.user)
+    if request.method == 'POST':
+        event.delete()
+        return redirect('dashboard')
+    return render(request, 'events/event_confirm_delete.html', {'event': event})
