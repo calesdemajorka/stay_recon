@@ -18,6 +18,7 @@ services:
         - manage.py
         - stay_recon/**
         - accounts/**
+        - events/**
         - templates/**
         - build.sh
         - pyproject.toml
