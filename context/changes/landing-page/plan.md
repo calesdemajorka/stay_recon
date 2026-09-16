@@ -165,13 +165,13 @@ Not applicable — no data model or schema changes.
 
 #### Automated
 
-- [x] 1.1 Django system check passes: `uv run manage.py check`
-- [x] 1.2 New test passes: `uv run manage.py test accounts`
-- [x] 1.3 Full test suite still passes: `uv run manage.py test`
+- [x] 1.1 Django system check passes: `uv run manage.py check` — aae374c
+- [x] 1.2 New test passes: `uv run manage.py test accounts` — aae374c
+- [x] 1.3 Full test suite still passes: `uv run manage.py test` — aae374c
 
 #### Manual
 
-- [x] 1.4 Landing page shows header, hero, problem/solution, how-it-works, repeated CTA, and footer
-- [x] 1.5 Sign up and Log in links navigate to the correct pages
-- [x] 1.6 Page reads correctly at ~400px phone width, no horizontal scroll
-- [x] 1.7 Visual style reads as an intentional, richer treatment distinct from the rest of the app, same font stack
+- [x] 1.4 Landing page shows header, hero, problem/solution, how-it-works, repeated CTA, and footer — aae374c
+- [x] 1.5 Sign up and Log in links navigate to the correct pages — aae374c
+- [x] 1.6 Page reads correctly at ~400px phone width, no horizontal scroll — aae374c
+- [x] 1.7 Visual style reads as an intentional, richer treatment distinct from the rest of the app, same font stack — aae374c
