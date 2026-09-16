@@ -43,7 +43,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 | F-01 | organiser-auth-app-scaffold           | (foundation) Django app scaffold exists; organiser can log in                 | —                      | Access Control (Organiser) | done |
 | F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | proposed |
 | S-01 | create-event                          | Organiser can create a new event (duplicate name+date blocked)                | F-01                  | FR-001                     | done |
-| S-02 | csv-upload-room-mapping               | Organiser can upload a hotel CSV, map columns, and confirm a normalized room list | S-01, F-01          | FR-002                     | in-progress |
+| S-02 | csv-upload-room-mapping               | Organiser can upload a hotel CSV, map columns, and confirm a normalized room list | S-01, F-01          | FR-002                     | done |
 | S-03 | participant-staff-lists-and-links     | Organiser can add validated participant/staff lists and get a unique access link per person | S-01, F-01, F-02 | FR-003, FR-004             | proposed |
 | S-04 | participant-books-via-link            | Participant sees available rooms (one suggested) via their link and books one | S-02, S-03, F-02      | US-01, FR-007, FR-014, FR-008 | proposed |
 | S-05 | change-booking-capped                 | Participant can change their booking, up to 3 times, within the window        | S-04                  | FR-009                     | proposed |
@@ -127,7 +127,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** CSV variance is the PRD's stated core differentiator. Running this in parallel with S-03 tests the riskiest technical assumption (arbitrary per-hotel CSV shapes) early, rather than leaving it for late in the 3-day runway.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-03: Organiser adds participant/staff lists and generates access links
 
@@ -269,3 +269,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **F-01: (foundation) A Django app exists to hold domain models/views, and an organiser can log in with a single auth method and reach an empty, account-scoped dashboard.** — Archived 2026-09-14 → `context/archive/2026-09-11-organiser-auth-app-scaffold/`. Lesson: —.
 - **S-01: Organiser can create a new event; creating a duplicate (same name + date) is blocked, editing an existing event is never blocking.** — Archived 2026-09-14 → `context/archive/2026-09-14-create-event/`. Lesson: —.
 - **S-10: A visitor without an access link sees an informative, functional landing page (value prop, how it works, sign up / log in CTAs) instead of the current placeholder.** — Archived 2026-09-16 → `context/archive/2026-09-16-landing-page/`. Lesson: —.
+- **S-02: Organiser can upload a hotel's room CSV, manually map its columns (room number, type, capacity), and confirm a preview of parsed rooms before they're saved.** — Archived 2026-09-16 → `context/archive/2026-09-14-csv-upload-room-mapping/`. Lesson: CSV/Excel export must sanitize formula-injection characters (`context/foundation/lessons.md`).
