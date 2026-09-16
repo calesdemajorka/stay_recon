@@ -51,7 +51,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 | S-07 | organiser-edit-booking-anytime        | Organiser can edit any booking or participant info at any time                | S-03, S-04             | FR-005                     | proposed |
 | S-08 | staff-checkin-edit-pack-handoff       | Event staff can check in a participant, edit their booking same-day, and mark starter pack handed over | S-03, S-04, F-02 | FR-011, FR-012, FR-013  | proposed |
 | S-09 | reconciliation-report                 | Organiser can generate and regenerate a rooms-used-vs-booked report           | S-04, S-08             | FR-006                     | proposed |
-| S-10 | landing-page                          | Visitor without an access link sees an informative landing page and can sign up / log in | F-01     | Access Control (Participant, no-link visitor) | in-progress |
+| S-10 | landing-page                          | Visitor without an access link sees an informative landing page and can sign up / log in | F-01     | Access Control (Participant, no-link visitor) | done |
 
 ## Streams
 
@@ -225,7 +225,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Low — content/markup only, no data model or new routes; the main risk is time spent on marketing polish under `top_blocker: time`, which is why this is scoped as a lean single-phase change rather than a full campaign page.
-- **Status:** in-progress
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -268,3 +268,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **F-01: (foundation) A Django app exists to hold domain models/views, and an organiser can log in with a single auth method and reach an empty, account-scoped dashboard.** — Archived 2026-09-14 → `context/archive/2026-09-11-organiser-auth-app-scaffold/`. Lesson: —.
 - **S-01: Organiser can create a new event; creating a duplicate (same name + date) is blocked, editing an existing event is never blocking.** — Archived 2026-09-14 → `context/archive/2026-09-14-create-event/`. Lesson: —.
+- **S-10: A visitor without an access link sees an informative, functional landing page (value prop, how it works, sign up / log in CTAs) instead of the current placeholder.** — Archived 2026-09-16 → `context/archive/2026-09-16-landing-page/`. Lesson: —.
