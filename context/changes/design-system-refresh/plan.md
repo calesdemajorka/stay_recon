@@ -117,14 +117,14 @@ Not applicable — no data model changes.
 
 #### Automated
 
-- [x] 1.1 Django system check passes: `uv run manage.py check`
-- [x] 1.2 Full test suite still passes: `uv run manage.py test`
+- [x] 1.1 Django system check passes: `uv run manage.py check` — 8ee4402
+- [x] 1.2 Full test suite still passes: `uv run manage.py test` — 8ee4402
 
 #### Manual
 
-- [x] 1.3 Hero tile grid renders and animates on `/`, static under reduced motion
-- [x] 1.4 Dashboard/signup/login/event forms show brass buttons and serif headings, layout unchanged
-- [x] 1.5 Page reads correctly at ~400px width
+- [x] 1.3 Hero tile grid renders and animates on `/`, static under reduced motion — 8ee4402
+- [x] 1.4 Dashboard/signup/login/event forms show brass buttons and serif headings, layout unchanged — 8ee4402
+- [x] 1.5 Page reads correctly at ~400px width — 8ee4402
 
 ### Phase 2: Propagate layout consistency to internal screens
 
