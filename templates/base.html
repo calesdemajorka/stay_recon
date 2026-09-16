@@ -11,9 +11,38 @@
     input { display: block; width: 100%; box-sizing: border-box; padding: 0.4rem; margin-top: 0.25rem; }
     button { margin-top: 1.5rem; padding: 0.5rem 1rem; }
     ul.errorlist { color: #b00020; padding-left: 1.2rem; }
+
+    /* Landing page — scoped so it never affects any other template */
+    body.landing { max-width: none; margin: 0; padding: 0; color: #1a1a1a; }
+    .landing a { color: #0f6a5c; }
+    .landing a:focus-visible, .landing button:focus-visible { outline: 2px solid #0f6a5c; outline-offset: 2px; }
+    .landing .wrap { max-width: 60rem; margin: 0 auto; padding: 0 1.5rem; }
+    .landing header.site-header { border-bottom: 1px solid #e5e5e5; }
+    .landing header.site-header .wrap { display: flex; align-items: center; justify-content: space-between; padding-top: 1.25rem; padding-bottom: 1.25rem; }
+    .landing .brand { font-weight: 700; font-size: 1.15rem; color: #1a1a1a; text-decoration: none; }
+    .landing nav a { margin-left: 1.5rem; font-weight: 600; text-decoration: none; }
+    .landing nav a.cta-primary { background: #0f6a5c; color: #fff; padding: 0.5rem 1rem; border-radius: 0.35rem; }
+    .landing .hero { padding: 4rem 0; text-align: center; }
+    .landing .hero h1 { font-size: 2.5rem; line-height: 1.15; margin-bottom: 1rem; }
+    .landing .hero p.subhead { font-size: 1.15rem; max-width: 40rem; margin: 0 auto 2rem; }
+    .landing .cta-primary { display: inline-block; background: #0f6a5c; color: #fff; padding: 0.75rem 1.75rem; border-radius: 0.35rem; text-decoration: none; font-weight: 600; }
+    .landing .cta-secondary { display: inline-block; margin-left: 1rem; padding: 0.75rem 1rem; text-decoration: none; font-weight: 600; }
+    .landing section.problem, .landing section.cta-repeat { background: #f5f7f6; padding: 3rem 0; }
+    .landing section.how-it-works { padding: 3rem 0; }
+    .landing section.how-it-works h2, .landing section.problem h2, .landing section.cta-repeat h2 { text-align: center; color: #0f6a5c; margin-bottom: 2rem; }
+    .landing .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; list-style: none; margin: 0; padding: 0; }
+    .landing .steps li h3 { margin-bottom: 0.5rem; }
+    .landing .cta-repeat { text-align: center; }
+    .landing footer.site-footer { padding: 2rem 0; text-align: center; }
+    .landing footer.site-footer a { margin-left: 1rem; }
+    @media (max-width: 640px) {
+      .landing .steps { grid-template-columns: 1fr; }
+      .landing .hero h1 { font-size: 1.85rem; }
+      .landing nav a.cta-primary { padding: 0.4rem 0.75rem; }
+    }
   </style>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   {% if messages %}
     <ul class="messages">
       {% for message in messages %}

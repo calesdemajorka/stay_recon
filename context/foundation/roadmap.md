@@ -3,7 +3,7 @@ project: StayRecon
 version: 1
 status: draft
 created: 2026-09-11
-updated: 2026-09-14
+updated: 2026-09-16
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -51,6 +51,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 | S-07 | organiser-edit-booking-anytime        | Organiser can edit any booking or participant info at any time                | S-03, S-04             | FR-005                     | proposed |
 | S-08 | staff-checkin-edit-pack-handoff       | Event staff can check in a participant, edit their booking same-day, and mark starter pack handed over | S-03, S-04, F-02 | FR-011, FR-012, FR-013  | proposed |
 | S-09 | reconciliation-report                 | Organiser can generate and regenerate a rooms-used-vs-booked report           | S-04, S-08             | FR-006                     | proposed |
+| S-10 | landing-page                          | Visitor without an access link sees an informative landing page and can sign up / log in | F-01     | Access Control (Participant, no-link visitor) | in-progress |
 
 ## Streams
 
@@ -60,6 +61,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | ------ | ---------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------- |
 | A      | Event setup, booking core & closeout     | `F-01` → `S-01` → `S-02` → `S-04` → `S-05` → `S-06` → `S-07` → `S-09` | Primary organiser+participant loop; carries the north star (`S-04`).  |
 | B      | Access & on-site staff ops               | `F-02` → `S-03` → `S-08`                                        | Joins Stream A at `S-04` (both `S-03` and `S-08` feed the booking flow). |
+| C      | Public-facing entry surface              | `F-01` → `S-10`                                                 | Independent of the booking core; content/markup only, can ship any time after login exists. |
 
 ## Baseline
 
@@ -213,6 +215,18 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Depends on S-08's actual check-in data to make "used" meaningful, not just "booked." This is the guardrail deliverable — the report must be data-accurate for the organiser's hotel invoicing — so it's sequenced last, after every data-producing slice exists, on purpose.
 - **Status:** proposed
 
+### S-10: Public landing page for prospective organisers
+
+- **Outcome:** A visitor without an access link sees an informative, functional landing page (value prop, how it works, sign up / log in CTAs) instead of the current placeholder.
+- **Change ID:** `landing-page`
+- **PRD refs:** Access Control §Participant ("A visitor with no link sees a generic landing page — no event or booking data is exposed.")
+- **Prerequisites:** F-01
+- **Parallel with:** S-02 through S-09 — independent of the booking flow
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — content/markup only, no data model or new routes; the main risk is time spent on marketing polish under `top_blocker: time`, which is why this is scoped as a lean single-phase change rather than a full campaign page.
+- **Status:** in-progress
+
 ## Backlog Handoff
 
 | Roadmap ID | Change ID                          | Suggested issue title                                              | Ready for `/10x-plan` | Notes |
@@ -228,6 +242,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-07       | `organiser-edit-booking-anytime`     | Organiser: edit booking/participant info anytime                       | no                     | Waits on S-03, S-04; precedence Unknown vs S-08 |
 | S-08       | `staff-checkin-edit-pack-handoff`    | Event staff: check-in, on-day edit, starter pack hand-off              | no                     | Waits on S-03, S-04, F-02; precedence Unknown vs S-07 |
 | S-09       | `reconciliation-report`              | Organiser: rooms-used-vs-booked reconciliation report                  | no                     | Waits on S-04, S-08 |
+| S-10       | `landing-page`                       | Public landing page for prospective organisers                         | yes                    | Ready — F-01 already done; plan at `context/changes/landing-page/plan.md` |
 
 ## Open Roadmap Questions
 

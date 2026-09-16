@@ -41,6 +41,14 @@ class LoginLogoutDashboardTests(TestCase):
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('dashboard')}")
 
 
+class LandingPageTests(TestCase):
+    def test_landing_page_loads_with_ctas(self):
+        response = self.client.get(reverse('index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse('signup'))
+        self.assertContains(response, reverse('login'))
+
+
 class SignupTests(TestCase):
     def test_valid_signup_creates_user_and_logs_in(self):
         response = self.client.post(reverse('signup'), {

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}StayRecon — stop reconciling hotel rooms by hand{% endblock %}
+{% block body_class %}landing{% endblock %}
+
+{% block content %}
+<header class="site-header">
+  <div class="wrap">
+    <span class="brand">StayRecon</span>
+    <nav>
+      <a href="{% url 'login' %}">Log in</a>
+      <a href="{% url 'signup' %}" class="cta-primary">Sign up</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Stop reconciling hotel rooms by hand.</h1>
+    <p class="subhead">Every hotel hands you a different CSV. StayRecon turns it into a bookable room list your participants can use — and a report you can trust when it's time to settle the invoice.</p>
+    <a href="{% url 'signup' %}" class="cta-primary">Sign up</a>
+    <a href="{% url 'login' %}" class="cta-secondary">Log in</a>
+  </div>
+</section>
+
+<section class="problem">
+  <div class="wrap">
+    <h2>The reconciliation problem</h2>
+    <p>Independent event organisers run events at a different hotel every time — and every hotel's room-availability export looks different. Today that gets reconciled by hand in spreadsheets, twice: once to open bookings, again after the event to check what was actually used against the invoice. One mistake means disputing charges or paying for rooms nobody stayed in.</p>
+    <p>StayRecon does the normalization step nobody else solves — map a hotel's CSV once, and get a room list you can trust for both booking and invoicing.</p>
+  </div>
+</section>
+
+<section class="how-it-works">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li>
+        <h3>1. Upload &amp; map</h3>
+        <p>Upload the hotel's CSV and map its columns — room number, type, capacity — once per event.</p>
+      </li>
+      <li>
+        <h3>2. Share access links</h3>
+        <p>Send each participant a unique link. They book their own room — no account required.</p>
+      </li>
+      <li>
+        <h3>3. Reconcile with confidence</h3>
+        <p>Generate a rooms-used-vs-booked report any time after the event, ready to hand to the hotel.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="cta-repeat">
+  <div class="wrap">
+    <h2>Ready to stop reconciling by hand?</h2>
+    <a href="{% url 'signup' %}" class="cta-primary">Sign up</a>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <span class="brand">StayRecon</span>
+  <a href="{% url 'login' %}">Log in</a>
+</footer>
+{% endblock %}
