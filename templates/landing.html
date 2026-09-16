@@ -16,10 +16,23 @@
 
 <section class="hero">
   <div class="wrap">
-    <h1>Stop reconciling hotel rooms by hand.</h1>
-    <p class="subhead">Every hotel hands you a different CSV. StayRecon turns it into a bookable room list your participants can use — and a report you can trust when it's time to settle the invoice.</p>
-    <a href="{% url 'signup' %}" class="cta-primary">Sign up</a>
-    <a href="{% url 'login' %}" class="cta-secondary">Log in</a>
+    <div>
+      <h1>Stop reconciling hotel rooms by hand.</h1>
+      <p class="subhead">Every hotel hands you a different CSV. StayRecon turns it into a bookable room list your participants can use — and a report you can trust when it's time to settle the invoice.</p>
+      <a href="{% url 'signup' %}" class="cta-primary">Sign up</a>
+      <a href="{% url 'login' %}" class="cta-secondary">Log in</a>
+    </div>
+    <div class="grid-device" aria-hidden="true">
+      <span class="tile"></span>
+      <span class="tile resolved"></span>
+      <span class="tile"></span>
+      <span class="tile resolved"></span>
+      <span class="tile resolved"></span>
+      <span class="tile"></span>
+      <span class="tile resolved"></span>
+      <span class="tile"></span>
+      <span class="tile resolved"></span>
+    </div>
   </div>
 </section>
 
@@ -28,6 +41,28 @@
     <h2>The reconciliation problem</h2>
     <p>Independent event organisers run events at a different hotel every time — and every hotel's room-availability export looks different. Today that gets reconciled by hand in spreadsheets, twice: once to open bookings, again after the event to check what was actually used against the invoice. One mistake means disputing charges or paying for rooms nobody stayed in.</p>
     <p>StayRecon does the normalization step nobody else solves — map a hotel's CSV once, and get a room list you can trust for both booking and invoicing.</p>
+
+    <div class="csv-compare" aria-hidden="true">
+      <div class="panel">
+        <span class="label">Hotel's CSV</span>
+        <table>
+          <tr><th>Rm#</th><th>Type</th><th>Cap</th></tr>
+          <tr><td>101</td><td>Twin</td><td>2</td></tr>
+          <tr><td>102A</td><td>Dbl</td><td>2</td></tr>
+          <tr><td> — </td><td>Suite</td><td>4</td></tr>
+        </table>
+      </div>
+      <span class="arrow">→</span>
+      <div class="panel">
+        <span class="label">StayRecon</span>
+        <table>
+          <tr><th>Room</th><th>Type</th><th>Cap</th></tr>
+          <tr><td>101</td><td>Twin</td><td>2</td></tr>
+          <tr><td>102A</td><td>Double</td><td>2</td></tr>
+          <tr><td>103</td><td>Suite</td><td>4</td></tr>
+        </table>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -36,16 +71,25 @@
     <h2>How it works</h2>
     <ol class="steps">
       <li>
-        <h3>1. Upload &amp; map</h3>
-        <p>Upload the hotel's CSV and map its columns — room number, type, capacity — once per event.</p>
+        <span class="step-num">1</span>
+        <div>
+          <h3>Upload &amp; map</h3>
+          <p>Upload the hotel's CSV and map its columns — room number, type, capacity — once per event.</p>
+        </div>
       </li>
       <li>
-        <h3>2. Share access links</h3>
-        <p>Send each participant a unique link. They book their own room — no account required.</p>
+        <span class="step-num">2</span>
+        <div>
+          <h3>Share access links</h3>
+          <p>Send each participant a unique link. They book their own room — no account required.</p>
+        </div>
       </li>
       <li>
-        <h3>3. Reconcile with confidence</h3>
-        <p>Generate a rooms-used-vs-booked report any time after the event, ready to hand to the hotel.</p>
+        <span class="step-num">3</span>
+        <div>
+          <h3>Reconcile with confidence</h3>
+          <p>Generate a rooms-used-vs-booked report any time after the event, ready to hand to the hotel.</p>
+        </div>
       </li>
     </ol>
   </div>
@@ -59,7 +103,9 @@
 </section>
 
 <footer class="site-footer">
-  <span class="brand">StayRecon</span>
-  <a href="{% url 'login' %}">Log in</a>
+  <div class="wrap">
+    <span class="brand">StayRecon</span>
+    <a href="{% url 'login' %}">Log in</a>
+  </div>
 </footer>
 {% endblock %}
