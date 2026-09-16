@@ -42,7 +42,7 @@
     }
   </style>
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body{% block body_class %}{% endblock %}>
   {% if messages %}
     <ul class="messages">
       {% for message in messages %}
