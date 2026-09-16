@@ -13,6 +13,7 @@ from events.models import Event
 from .forms import (
     MAX_HEADER_LENGTH,
     MAX_ROWS,
+    MAX_UPLOAD_BYTES,
     PAGE_SIZE,
     ColumnMappingForm,
     CSVUploadForm,
@@ -51,6 +52,11 @@ def csv_upload(request, event_pk):
                     'confirm_replace',
                     f'This event already has {existing_room_count} confirmed room(s). '
                     'Check the box to confirm you want to replace them.',
+                )
+            elif form.cleaned_data['csv_file'].size > MAX_UPLOAD_BYTES:
+                form.add_error(
+                    'csv_file',
+                    f'This file is larger than {MAX_UPLOAD_BYTES // (1024 * 1024)}MB — check the file and try again.',
                 )
             else:
                 raw_bytes = form.cleaned_data['csv_file'].read()

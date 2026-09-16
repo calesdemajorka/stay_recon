@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from events.models import Event
 
-from .forms import MAX_ROWS
+from .forms import MAX_FIELD_VALUE_LENGTH, MAX_ROWS, MAX_UPLOAD_BYTES
 from .models import PendingUpload, Room
 
 User = get_user_model()
@@ -149,6 +149,16 @@ class CSVUploadViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(PendingUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
 
+    def test_oversized_upload_rejected(self):
+        # One row repeated well past MAX_UPLOAD_BYTES — rejected on file
+        # size before the content is ever read/decoded.
+        row = b'101,Single,2\n'
+        oversized = b'Room No,Type,Cap\n' + row * (MAX_UPLOAD_BYTES // len(row) + 1)
+        response = self._upload(oversized, filename='rooms.csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context['form'], 'csv_file', response.context['form'].errors['csv_file'])
+        self.assertFalse(PendingUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
+
 
 class ColumnMappingViewTests(TestCase):
     def setUp(self):
@@ -163,6 +173,7 @@ class ColumnMappingViewTests(TestCase):
                 {'Room No': '101', 'Type': 'Single', 'Cap': '2'},
                 {'Room No': '', 'Type': 'Double', 'Cap': '3'},
                 {'Room No': '103', 'Type': 'Suite', 'Cap': 'four'},
+                {'Room No': '104', 'Type': 'X' * (MAX_FIELD_VALUE_LENGTH + 1), 'Cap': '2'},
             ],
         )
         self.client.login(username='organiser@example.com', password='testpass123')
@@ -207,6 +218,13 @@ class ColumnMappingViewTests(TestCase):
         self.client.login(username='other@example.com', password='testpass123')
         response = self.client.get(reverse('rooms_map_columns', args=[self.event.pk]))
         self.assertEqual(response.status_code, 404)
+
+    def test_overlong_field_value_flagged(self):
+        self.client.post(reverse('rooms_map_columns', args=[self.event.pk]), {
+            'room_number': 'Room No', 'room_type': 'Type', 'capacity': 'Cap',
+        })
+        self.pending.refresh_from_db()
+        self.assertIn('room_type', self.pending.mapped_rows[3]['errors'])
 
 
 def _row(room_number, room_type='Single', capacity='2', errors=None):

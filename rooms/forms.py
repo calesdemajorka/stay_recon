@@ -2,6 +2,8 @@ from django import forms
 
 MAX_ROWS = 5000
 MAX_HEADER_LENGTH = 200
+MAX_UPLOAD_BYTES = 2 * 1024 * 1024  # 2MB — generous for a hotel room CSV, rejected before reading
+MAX_FIELD_VALUE_LENGTH = 200
 
 TARGET_FIELDS = ('room_number', 'room_type', 'capacity')
 TARGET_FIELD_LABELS = {
@@ -36,8 +38,12 @@ def validate_row(room_number, room_type, capacity):
     errors = {}
     if not room_number:
         errors['room_number'] = 'Room number is required.'
+    elif len(room_number) > MAX_FIELD_VALUE_LENGTH:
+        errors['room_number'] = f'Room number must be under {MAX_FIELD_VALUE_LENGTH} characters.'
     if not capacity.isdigit():
         errors['capacity'] = 'Capacity must be a whole number.'
+    if len(room_type) > MAX_FIELD_VALUE_LENGTH:
+        errors['room_type'] = f'Room type must be under {MAX_FIELD_VALUE_LENGTH} characters.'
     return {'room_number': room_number, 'room_type': room_type, 'capacity': capacity, 'errors': errors}
 
 
