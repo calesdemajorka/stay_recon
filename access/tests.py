@@ -164,3 +164,11 @@ class StaffSessionTests(TestCase):
         response = self.client.get(reverse('staff_dashboard', args=[self.event_a.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'no longer valid')
+
+    def test_nonexistent_event_shows_invalid_message_not_404(self):
+        make_access_link(event=self.event_a, token='staff-token', role=AccessLink.ROLE_STAFF)
+        self.client.get(reverse('staff_login', args=['staff-token']))
+        nonexistent_pk = self.event_b.pk + 1000
+        response = self.client.get(reverse('staff_dashboard', args=[nonexistent_pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no longer valid')

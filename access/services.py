@@ -25,7 +25,14 @@ def verify_access_link(token, *, role=None):
 
 def establish_staff_session(request, access_link):
     """Record a verified staff AccessLink in the session — no User/account
-    is created; the session key is the only persisted state."""
+    is created; the session key is the only persisted state.
+
+    Rotates the session id first: this flow never calls django.contrib
+    .auth.login(), so Django wouldn't otherwise rotate it on this
+    privilege-elevating event, leaving a pre-existing session id staff-
+    privileged once the token is verified.
+    """
+    request.session.cycle_key()
     request.session[STAFF_SESSION_KEY] = access_link.pk
 
 

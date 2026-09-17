@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 
 from events.models import Event
 
@@ -22,8 +22,11 @@ def staff_login(request, token):
 
 
 def staff_dashboard(request, event_pk):
-    event = get_object_or_404(Event, pk=event_pk)
-    access_link = get_staff_access_link(request, event)
+    # A nonexistent event_pk is treated the same as any other invalid
+    # session — not a 404 — so this route never distinguishes "no such
+    # event" from "not a valid staff session" (see F2, impl-review).
+    event = Event.objects.filter(pk=event_pk).first()
+    access_link = get_staff_access_link(request, event) if event is not None else None
     if access_link is None:
         return render(request, 'access/link_invalid.html')
     return render(request, 'access/staff_dashboard.html', {'event': event, 'access_link': access_link})
