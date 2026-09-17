@@ -9,7 +9,7 @@ from django.utils import timezone
 from events.models import Event
 
 from .models import AccessLink
-from .services import verify_access_link
+from .services import STAFF_SESSION_KEY, verify_access_link
 
 User = get_user_model()
 
@@ -113,5 +113,54 @@ class ParticipantAccessViewTests(TestCase):
     def test_staff_token_rejected_on_participant_url(self):
         make_access_link(event=self.event, token='staff-token', role=AccessLink.ROLE_STAFF)
         response = self.client.get(reverse('participant_access', args=['staff-token']))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no longer valid')
+
+
+class StaffSessionTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.event_a = make_event(organiser=self.organiser, name='Event A')
+        self.event_b = make_event(organiser=self.organiser, name='Event B')
+
+    def test_valid_staff_token_establishes_session_and_redirects(self):
+        make_access_link(event=self.event_a, token='staff-token', role=AccessLink.ROLE_STAFF)
+        response = self.client.get(reverse('staff_login', args=['staff-token']))
+        self.assertRedirects(response, reverse('staff_dashboard', args=[self.event_a.pk]))
+        self.assertEqual(self.client.session[STAFF_SESSION_KEY], AccessLink.objects.get(token='staff-token').pk)
+
+    def test_participant_token_rejected_on_staff_login(self):
+        make_access_link(event=self.event_a, token='participant-token', role=AccessLink.ROLE_PARTICIPANT)
+        response = self.client.get(reverse('staff_login', args=['participant-token']))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no longer valid')
+        self.assertNotIn(STAFF_SESSION_KEY, self.client.session)
+
+    def test_second_request_succeeds_via_session_alone(self):
+        link = make_access_link(event=self.event_a, token='staff-token', role=AccessLink.ROLE_STAFF)
+        self.client.get(reverse('staff_login', args=['staff-token']))
+        response = self.client.get(reverse('staff_dashboard', args=[self.event_a.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.event_a.name)
+        self.assertContains(response, link.label)
+
+    def test_session_for_one_event_rejected_on_another(self):
+        make_access_link(event=self.event_a, token='staff-token', role=AccessLink.ROLE_STAFF)
+        self.client.get(reverse('staff_login', args=['staff-token']))
+        response = self.client.get(reverse('staff_dashboard', args=[self.event_b.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no longer valid')
+
+    def test_revoking_link_after_session_established_fails_next_request(self):
+        link = make_access_link(event=self.event_a, token='staff-token', role=AccessLink.ROLE_STAFF)
+        self.client.get(reverse('staff_login', args=['staff-token']))
+        link.is_revoked = True
+        link.save(update_fields=['is_revoked'])
+        response = self.client.get(reverse('staff_dashboard', args=[self.event_a.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no longer valid')
+
+    def test_no_prior_session_shows_invalid_message(self):
+        response = self.client.get(reverse('staff_dashboard', args=[self.event_a.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'no longer valid')

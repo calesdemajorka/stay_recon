@@ -253,15 +253,15 @@ Purely additive: a new app and one new table, no existing data affected. No prod
 
 #### Automated
 
-- [ ] 3.1 Valid staff token establishes session and redirects to dashboard
-- [ ] 3.2 Participant-role token rejected on staff URL, no session set
-- [ ] 3.3 Second request to dashboard succeeds via session alone (no token)
-- [ ] 3.4 Session for event A rejected on event B's dashboard
-- [ ] 3.5 Revoking the AccessLink after session established fails the next request
-- [ ] 3.6 No prior session renders invalid-link message, not 500
+- [x] 3.1 Valid staff token establishes session and redirects to dashboard
+- [x] 3.2 Participant-role token rejected on staff URL, no session set
+- [x] 3.3 Second request to dashboard succeeds via session alone (no token)
+- [x] 3.4 Session for event A rejected on event B's dashboard
+- [x] 3.5 Revoking the AccessLink after session established fails the next request
+- [x] 3.6 No prior session renders invalid-link message, not 500
 
 #### Manual
 
-- [ ] 3.7 Live: staff link redirects to correct event dashboard
-- [ ] 3.8 Live: dashboard reachable on reload without token
-- [ ] 3.9 Live: private/incognito window shows invalid-link message
+- [x] 3.7 Live: staff link redirects to correct event dashboard
+- [x] 3.8 Live: dashboard reachable on reload without token
+- [x] 3.9 Live: private/incognito window shows invalid-link message

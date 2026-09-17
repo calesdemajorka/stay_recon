@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from access.views import participant_access
+from access.views import participant_access, staff_dashboard, staff_login
 from accounts.views import dashboard, signup
 from events.views import event_create, event_delete, event_edit
 from rooms.views import csv_map_columns, csv_preview, csv_upload
@@ -38,4 +38,6 @@ urlpatterns = [
     path('events/<int:event_pk>/rooms/map/', csv_map_columns, name='rooms_map_columns'),
     path('events/<int:event_pk>/rooms/preview/', csv_preview, name='rooms_preview'),
     path('participant/<str:token>/', participant_access, name='participant_access'),
+    path('staff/<str:token>/', staff_login, name='staff_login'),
+    path('staff/events/<int:event_pk>/', staff_dashboard, name='staff_dashboard'),
 ]
