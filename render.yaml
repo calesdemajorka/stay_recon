@@ -20,6 +20,7 @@ services:
         - accounts/**
         - events/**
         - rooms/**
+        - access/**
         - templates/**
         - build.sh
         - pyproject.toml

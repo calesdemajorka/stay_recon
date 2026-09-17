@@ -41,7 +41,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 | ID   | Change ID                            | Outcome (user can …)                                                        | Prerequisites        | PRD refs                  | Status   |
 | ---- | ------------------------------------- | ----------------------------------------------------------------------------- | --------------------- | -------------------------- | -------- |
 | F-01 | organiser-auth-app-scaffold           | (foundation) Django app scaffold exists; organiser can log in                 | —                      | Access Control (Organiser) | done |
-| F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | proposed |
+| F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | in-progress |
 | S-01 | create-event                          | Organiser can create a new event (duplicate name+date blocked)                | F-01                  | FR-001                     | done |
 | S-02 | csv-upload-room-mapping               | Organiser can upload a hotel CSV, map columns, and confirm a normalized room list | S-01, F-01          | FR-002                     | done |
 | S-03 | participant-staff-lists-and-links     | Organiser can add validated participant/staff lists and get a unique access link per person | S-01, F-01, F-02 | FR-003, FR-004             | proposed |
@@ -101,7 +101,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Participant and staff routes need a working verification mechanism before either can be demoed. Keeping this to verification-only (not the link-generation UI, which stays user-visible in S-03) avoids re-absorbing S-03's work into a foundation.
-- **Status:** proposed
+- **Status:** in-progress
 
 ## Slices
 

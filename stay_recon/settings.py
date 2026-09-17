@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'accounts',
     'events',
     'rooms',
+    'access',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
