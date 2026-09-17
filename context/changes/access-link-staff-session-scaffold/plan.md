@@ -236,18 +236,18 @@ Purely additive: a new app and one new table, no existing data affected. No prod
 
 #### Automated
 
-- [x] 2.1 Valid token resolves to the correct AccessLink
-- [x] 2.2 Unknown token returns None
-- [x] 2.3 Revoked token returns None
-- [x] 2.4 Expired token (window_end passed) returns None
-- [x] 2.5 Staff-role token rejected when role='participant' requested
-- [x] 2.6 Valid participant URL renders 200 with event name
-- [x] 2.7 Invalid participant URL renders invalid-link message, not 404/500
+- [x] 2.1 Valid token resolves to the correct AccessLink — 8d46b24
+- [x] 2.2 Unknown token returns None — 8d46b24
+- [x] 2.3 Revoked token returns None — 8d46b24
+- [x] 2.4 Expired token (window_end passed) returns None — 8d46b24
+- [x] 2.5 Staff-role token rejected when role='participant' requested — 8d46b24
+- [x] 2.6 Valid participant URL renders 200 with event name — 8d46b24
+- [x] 2.7 Invalid participant URL renders invalid-link message, not 404/500 — 8d46b24
 
 #### Manual
 
-- [x] 2.8 Live: participant link shows correct event name
-- [x] 2.9 Live: expiring the event's window_end invalidates the link
+- [x] 2.8 Live: participant link shows correct event name — 8d46b24
+- [x] 2.9 Live: expiring the event's window_end invalidates the link — 8d46b24
 
 ### Phase 3: Staff session mechanism
 
