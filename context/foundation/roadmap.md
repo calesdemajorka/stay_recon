@@ -3,7 +3,7 @@ project: StayRecon
 version: 1
 status: draft
 created: 2026-09-11
-updated: 2026-09-16
+updated: 2026-09-17
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -41,7 +41,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 | ID   | Change ID                            | Outcome (user can …)                                                        | Prerequisites        | PRD refs                  | Status   |
 | ---- | ------------------------------------- | ----------------------------------------------------------------------------- | --------------------- | -------------------------- | -------- |
 | F-01 | organiser-auth-app-scaffold           | (foundation) Django app scaffold exists; organiser can log in                 | —                      | Access Control (Organiser) | done |
-| F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | in-progress |
+| F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | done |
 | S-01 | create-event                          | Organiser can create a new event (duplicate name+date blocked)                | F-01                  | FR-001                     | done |
 | S-02 | csv-upload-room-mapping               | Organiser can upload a hotel CSV, map columns, and confirm a normalized room list | S-01, F-01          | FR-002                     | done |
 | S-03 | participant-staff-lists-and-links     | Organiser can add validated participant/staff lists and get a unique access link per person | S-01, F-01, F-02 | FR-003, FR-004             | proposed |
@@ -101,7 +101,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Participant and staff routes need a working verification mechanism before either can be demoed. Keeping this to verification-only (not the link-generation UI, which stays user-visible in S-03) avoids re-absorbing S-03's work into a foundation.
-- **Status:** in-progress
+- **Status:** done
 
 ## Slices
 
@@ -270,3 +270,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **S-01: Organiser can create a new event; creating a duplicate (same name + date) is blocked, editing an existing event is never blocking.** — Archived 2026-09-14 → `context/archive/2026-09-14-create-event/`. Lesson: —.
 - **S-10: A visitor without an access link sees an informative, functional landing page (value prop, how it works, sign up / log in CTAs) instead of the current placeholder.** — Archived 2026-09-16 → `context/archive/2026-09-16-landing-page/`. Lesson: —.
 - **S-02: Organiser can upload a hotel's room CSV, manually map its columns (room number, type, capacity), and confirm a preview of parsed rooms before they're saved.** — Archived 2026-09-16 → `context/archive/2026-09-14-csv-upload-room-mapping/`. Lesson: CSV/Excel export must sanitize formula-injection characters (`context/foundation/lessons.md`).
+- **F-02: (foundation) A no-account, token-based link-verification mechanism for participants, and a scoped staff-login session mechanism, both usable by any route that needs them.** — Archived 2026-09-17 → `context/archive/2026-09-16-access-link-staff-session-scaffold/`. Lesson: always stage commits by explicit path, never bundle unrelated dirty paths (`context/foundation/lessons.md`).

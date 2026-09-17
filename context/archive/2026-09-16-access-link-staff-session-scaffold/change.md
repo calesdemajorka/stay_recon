@@ -1,10 +1,10 @@
 ---
 change_id: access-link-staff-session-scaffold
 title: Access link staff session scaffold
-status: impl_reviewed
+status: archived
 created: 2026-09-16
 updated: 2026-09-17
-archived_at: null
+archived_at: 2026-09-17T09:55:02Z
 ---
 
 ## Notes
