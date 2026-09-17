@@ -1,12 +1,15 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
 
 from events.models import Event
 
 from .models import AccessLink
+from .services import verify_access_link
 
 User = get_user_model()
 
@@ -55,3 +58,60 @@ class AccessLinkModelTests(TestCase):
         make_access_link(event=self.event, token='cascade-token')
         self.event.delete()
         self.assertFalse(AccessLink.objects.filter(token='cascade-token').exists())
+
+
+class VerifyAccessLinkTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+
+    def test_valid_token_resolves(self):
+        link = make_access_link(event=self.event, token='valid-token')
+        self.assertEqual(verify_access_link('valid-token'), link)
+
+    def test_unknown_token_returns_none(self):
+        self.assertIsNone(verify_access_link('does-not-exist'))
+
+    def test_revoked_token_returns_none(self):
+        make_access_link(event=self.event, token='revoked-token', is_revoked=True)
+        self.assertIsNone(verify_access_link('revoked-token'))
+
+    def test_expired_token_returns_none(self):
+        expired_event = make_event(
+            organiser=self.organiser,
+            name='Past Event',
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 1, 2),
+            window_start=date(2019, 12, 1),
+            window_end=timezone.now().date() - timedelta(days=1),
+        )
+        make_access_link(event=expired_event, token='expired-token')
+        self.assertIsNone(verify_access_link('expired-token'))
+
+    def test_wrong_role_rejected(self):
+        make_access_link(event=self.event, token='staff-token', role=AccessLink.ROLE_STAFF)
+        self.assertIsNone(verify_access_link('staff-token', role=AccessLink.ROLE_PARTICIPANT))
+
+
+class ParticipantAccessViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+
+    def test_valid_token_shows_event_name(self):
+        make_access_link(event=self.event, token='valid-token', label='jane@example.com')
+        response = self.client.get(reverse('participant_access', args=['valid-token']))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.event.name)
+        self.assertContains(response, 'jane@example.com')
+
+    def test_invalid_token_shows_invalid_message(self):
+        response = self.client.get(reverse('participant_access', args=['no-such-token']))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no longer valid')
+
+    def test_staff_token_rejected_on_participant_url(self):
+        make_access_link(event=self.event, token='staff-token', role=AccessLink.ROLE_STAFF)
+        response = self.client.get(reverse('participant_access', args=['staff-token']))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'no longer valid')

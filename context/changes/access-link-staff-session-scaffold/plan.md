@@ -222,32 +222,32 @@ Purely additive: a new app and one new table, no existing data affected. No prod
 
 #### Automated
 
-- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations
-- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3`
-- [x] 1.3 `manage.py check` passes
-- [x] 1.4 Token uniqueness enforced (`IntegrityError` on duplicate)
-- [x] 1.5 Deleting an Event cascades to delete its AccessLinks
+- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations — d1c3ece
+- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3` — d1c3ece
+- [x] 1.3 `manage.py check` passes — d1c3ece
+- [x] 1.4 Token uniqueness enforced (`IntegrityError` on duplicate) — d1c3ece
+- [x] 1.5 Deleting an Event cascades to delete its AccessLinks — d1c3ece
 
 #### Manual
 
-- [x] 1.6 AccessLink appears in `/admin/` with expected columns; a row can be created manually
+- [x] 1.6 AccessLink appears in `/admin/` with expected columns; a row can be created manually — d1c3ece
 
 ### Phase 2: Participant token verification
 
 #### Automated
 
-- [ ] 2.1 Valid token resolves to the correct AccessLink
-- [ ] 2.2 Unknown token returns None
-- [ ] 2.3 Revoked token returns None
-- [ ] 2.4 Expired token (window_end passed) returns None
-- [ ] 2.5 Staff-role token rejected when role='participant' requested
-- [ ] 2.6 Valid participant URL renders 200 with event name
-- [ ] 2.7 Invalid participant URL renders invalid-link message, not 404/500
+- [x] 2.1 Valid token resolves to the correct AccessLink
+- [x] 2.2 Unknown token returns None
+- [x] 2.3 Revoked token returns None
+- [x] 2.4 Expired token (window_end passed) returns None
+- [x] 2.5 Staff-role token rejected when role='participant' requested
+- [x] 2.6 Valid participant URL renders 200 with event name
+- [x] 2.7 Invalid participant URL renders invalid-link message, not 404/500
 
 #### Manual
 
-- [ ] 2.8 Live: participant link shows correct event name
-- [ ] 2.9 Live: expiring the event's window_end invalidates the link
+- [x] 2.8 Live: participant link shows correct event name
+- [x] 2.9 Live: expiring the event's window_end invalidates the link
 
 ### Phase 3: Staff session mechanism
 
