@@ -44,7 +44,7 @@ Independent event organisers reconcile participant room bookings against a hotel
 | F-02 | access-link-staff-session-scaffold    | (foundation) participant token-link verification + staff scoped-session mechanism | F-01               | Access Control (Participant, Event staff), FR-004 | done |
 | S-01 | create-event                          | Organiser can create a new event (duplicate name+date blocked)                | F-01                  | FR-001                     | done |
 | S-02 | csv-upload-room-mapping               | Organiser can upload a hotel CSV, map columns, and confirm a normalized room list | S-01, F-01          | FR-002                     | done |
-| S-03 | participant-staff-lists-and-links     | Organiser can add validated participant/staff lists and get a unique access link per person | S-01, F-01, F-02 | FR-003, FR-004             | proposed |
+| S-03 | participant-staff-lists-and-links     | Organiser can add validated participant/staff lists and get a unique access link per person | S-01, F-01, F-02 | FR-003, FR-004             | in-progress |
 | S-04 | participant-books-via-link            | Participant sees available rooms (one suggested) via their link and books one | S-02, S-03, F-02      | US-01, FR-007, FR-014, FR-008 | proposed |
 | S-05 | change-booking-capped                 | Participant can change their booking, up to 3 times, within the window        | S-04                  | FR-009                     | proposed |
 | S-06 | readonly-status-after-window          | Participant sees a read-only booking status once the window closes            | S-04                  | FR-010                     | proposed |
@@ -139,7 +139,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The links generated here are what S-04 (north star) and S-08 (staff check-in) both consume. Running in parallel with S-02 is the single biggest time-saving opportunity in this roadmap, given `top_blocker: time`.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-04: Participant views and books a room via access link
 
