@@ -335,20 +335,20 @@ Purely additive: two new models plus the staging model in the existing `access` 
 
 #### Automated
 
-- [ ] 2.1 Valid CSV creates PendingListUpload with matching rows
-- [ ] 2.2 CSV missing a required column rejected, no PendingListUpload created
-- [ ] 2.3 cp1252/latin-1 CSV decoded via fallback chain
-- [ ] 2.4 Oversized upload rejected before reading
-- [ ] 2.5 Malformed email flagged per-row
-- [ ] 2.6 Second upload replaces pending (unconfirmed) rows, not duplicates
-- [ ] 2.7 Pagination shows correct row slices
-- [ ] 2.8 Correcting a row on page-save clears its error and persists
-- [ ] 2.9 Confirm blocks on remaining per-row error
-- [ ] 2.10 Confirm blocks on within-upload duplicate email
-- [ ] 2.11 Confirm blocks on duplicate against existing Participant (append-only)
-- [ ] 2.12 Confirm blocks on duplicate against existing StaffMember (cross-role)
-- [ ] 2.13 Confirm with valid data creates Participant + AccessLink rows, deletes PendingListUpload
-- [ ] 2.14 Upload/preview/confirm for another organiser's event returns 404
+- [x] 2.1 Valid CSV creates PendingListUpload with matching rows
+- [x] 2.2 CSV missing a required column rejected, no PendingListUpload created
+- [x] 2.3 cp1252/latin-1 CSV decoded via fallback chain
+- [x] 2.4 Oversized upload rejected before reading
+- [x] 2.5 Malformed email flagged per-row
+- [x] 2.6 Second upload replaces pending (unconfirmed) rows, not duplicates
+- [x] 2.7 Pagination shows correct row slices
+- [x] 2.8 Correcting a row on page-save clears its error and persists
+- [x] 2.9 Confirm blocks on remaining per-row error
+- [x] 2.10 Confirm blocks on within-upload duplicate email
+- [x] 2.11 Confirm blocks on duplicate against existing Participant (append-only)
+- [x] 2.12 Confirm blocks on duplicate against existing StaffMember (cross-role)
+- [x] 2.13 Confirm with valid data creates Participant + AccessLink rows, deletes PendingListUpload
+- [x] 2.14 Upload/preview/confirm for another organiser's event returns 404
 
 #### Manual
 

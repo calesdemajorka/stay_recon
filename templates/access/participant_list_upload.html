@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Upload participant list — StayRecon{% endblock %}
+{% block content %}
+  <h1>Upload participant list</h1>
+  <p>Event: {{ event.name }}</p>
+  <p>CSV with <code>name</code> and <code>email</code> columns.</p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+  </form>
+{% endblock %}

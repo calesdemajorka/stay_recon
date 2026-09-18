@@ -1,8 +1,34 @@
+import secrets
+
+from django.db.models.functions import Lower, Trim
 from django.utils import timezone
 
-from .models import AccessLink
+from .models import AccessLink, Participant, StaffMember
 
 STAFF_SESSION_KEY = 'staff_access_link_id'
+
+
+def generate_token():
+    """A fresh, unguessable access-link token. Collision probability
+    against an existing token is astronomically negligible at this
+    entropy (256 bits) — no retry-on-collision handling needed."""
+    return secrets.token_urlsafe(32)
+
+
+def email_taken_for_event(email, event):
+    """True if `email` already belongs to a Participant or StaffMember for
+    this event (either role — dual-role per event is disallowed, so this
+    check is deliberately role-agnostic). Normalizes the same way the
+    Lower(Trim('email')) DB constraints do."""
+    normalized = email.strip().lower()
+    participant_taken = Participant.objects.annotate(
+        normalized_email=Lower(Trim('email')),
+    ).filter(event=event, normalized_email=normalized).exists()
+    if participant_taken:
+        return True
+    return StaffMember.objects.annotate(
+        normalized_email=Lower(Trim('email')),
+    ).filter(event=event, normalized_email=normalized).exists()
 
 
 def verify_access_link(token, *, role=None):

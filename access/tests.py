@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
@@ -9,6 +10,7 @@ from django.utils import timezone
 
 from events.models import Event
 
+from .forms import MAX_UPLOAD_BYTES
 from .models import AccessLink, Participant, PendingListUpload, StaffMember
 from .services import STAFF_SESSION_KEY, verify_access_link
 
@@ -284,3 +286,184 @@ class StaffSessionTests(TestCase):
         response = self.client.get(reverse('staff_dashboard', args=[nonexistent_pk]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'no longer valid')
+
+
+class ParticipantListUploadViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def _upload(self, content_bytes, filename='participants.csv', **extra):
+        data = {'csv_file': SimpleUploadedFile(filename, content_bytes)}
+        data.update(extra)
+        return self.client.post(reverse('participant_list_upload', args=[self.event.pk]), data)
+
+    def test_valid_csv_creates_pending_upload(self):
+        csv_bytes = 'name,email\nJane Doe,jane@example.com\nJohn Roe,john@example.com\n'.encode('utf-8')
+        response = self._upload(csv_bytes)
+        self.assertRedirects(response, reverse('participant_list_preview', args=[self.event.pk]))
+        pending = PendingListUpload.objects.get(organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT)
+        self.assertEqual(pending.rows[0]['name'], 'Jane Doe')
+        self.assertEqual(pending.rows[0]['email'], 'jane@example.com')
+
+    def test_missing_email_column_rejected(self):
+        response = self._upload('name,phone\nJane Doe,555-1234\n'.encode('utf-8'))
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context['form'], 'csv_file', response.context['form'].errors['csv_file'])
+        self.assertFalse(PendingListUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
+
+    def test_cp1252_csv_decoded_via_fallback(self):
+        csv_text = 'name,email\nJoão – Silva,joao@example.com\n'
+        csv_bytes = csv_text.encode('cp1252')
+        self._upload(csv_bytes)
+        pending = PendingListUpload.objects.get(organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT)
+        self.assertEqual(pending.rows[0]['name'], 'João – Silva')
+
+    def test_oversized_upload_rejected(self):
+        row = b'Jane,jane@example.com\n'
+        oversized = b'name,email\n' + row * (MAX_UPLOAD_BYTES // len(row) + 1)
+        response = self._upload(oversized)
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context['form'], 'csv_file', response.context['form'].errors['csv_file'])
+        self.assertFalse(PendingListUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
+
+    def test_malformed_email_flagged(self):
+        self._upload('name,email\nJane Doe,not-an-email\n'.encode('utf-8'))
+        pending = PendingListUpload.objects.get(organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT)
+        self.assertIn('email', pending.rows[0]['errors'])
+
+    def test_second_upload_replaces_existing_pending_upload(self):
+        self._upload('name,email\nJane Doe,jane@example.com\n'.encode('utf-8'))
+        self._upload('name,email\nJohn Roe,john@example.com\n'.encode('utf-8'))
+        self.assertEqual(
+            PendingListUpload.objects.filter(organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT).count(), 1,
+        )
+        pending = PendingListUpload.objects.get(organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT)
+        self.assertEqual(pending.rows[0]['name'], 'John Roe')
+
+    def test_upload_for_another_organisers_event_returns_404(self):
+        other_event = make_event(
+            organiser=self.other_organiser, name='Other',
+            start_date=date(2027, 2, 1), end_date=date(2027, 2, 2),
+            window_start=date(2027, 1, 18), window_end=date(2027, 1, 29),
+        )
+        response = self.client.post(
+            reverse('participant_list_upload', args=[other_event.pk]),
+            {'csv_file': SimpleUploadedFile('participants.csv', b'name,email\nJane,jane@example.com\n')},
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+def _row(name, email, errors=None):
+    return {'name': name, 'email': email, 'errors': errors or {}}
+
+
+def _formset_post_data(rows, current_page, action):
+    data = {
+        'form-TOTAL_FORMS': str(len(rows)),
+        'form-INITIAL_FORMS': str(len(rows)),
+        'form-MIN_NUM_FORMS': '0',
+        'form-MAX_NUM_FORMS': '1000',
+        'current_page': str(current_page),
+        'action': action,
+    }
+    for i, row in enumerate(rows):
+        data[f'form-{i}-name'] = row['name']
+        data[f'form-{i}-email'] = row['email']
+    return data
+
+
+class ParticipantListPreviewConfirmViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def _make_pending(self, rows):
+        return PendingListUpload.objects.create(
+            organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT, rows=rows,
+        )
+
+    def test_page_slices_correct(self):
+        rows = [_row(f'Person {i}', f'person{i}@example.com') for i in range(30)]
+        self._make_pending(rows)
+        response = self.client.get(reverse('participant_list_preview', args=[self.event.pk]), {'page': 2})
+        self.assertEqual(response.context['page'], 2)
+        self.assertEqual(response.context['total_pages'], 2)
+        self.assertEqual(len(response.context['rows']), 5)
+
+    def test_correcting_row_clears_error_and_persists(self):
+        pending = self._make_pending([_row('Jane', 'not-an-email', errors={'email': 'Enter a valid email address.'})])
+        data = _formset_post_data([_row('Jane', 'jane@example.com')], current_page=1, action='next')
+        self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        pending.refresh_from_db()
+        self.assertEqual(pending.rows[0]['errors'], {})
+        self.assertEqual(pending.rows[0]['email'], 'jane@example.com')
+
+    def test_mismatched_total_forms_rejected(self):
+        pending = self._make_pending([_row('Jane', 'jane@example.com'), _row('John', 'john@example.com')])
+        data = _formset_post_data([_row('Jane', 'jane@example.com')], current_page=1, action='next')
+        data['form-TOTAL_FORMS'] = '1'  # actual page has 2 rows
+        response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('went wrong', response.context['page_error'])
+        pending.refresh_from_db()
+        self.assertEqual(len(pending.rows), 2)
+
+    def test_confirm_blocks_on_remaining_error(self):
+        pending = self._make_pending([
+            _row('Jane', 'jane@example.com'),
+            _row('', 'not-an-email', errors={'name': 'Name is required.', 'email': 'Enter a valid email address.'}),
+        ])
+        data = _formset_post_data(pending.rows, current_page=1, action='confirm')
+        response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('error', response.context['page_error'])
+        self.assertEqual(Participant.objects.count(), 0)
+
+    def test_confirm_blocks_on_duplicate_within_upload(self):
+        pending = self._make_pending([_row('Jane', 'jane@example.com'), _row('Jane Again', 'jane@example.com')])
+        data = _formset_post_data(pending.rows, current_page=1, action='confirm')
+        response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('duplicates', response.context['page_error'])
+        self.assertEqual(Participant.objects.count(), 0)
+
+    def test_confirm_blocks_on_duplicate_against_existing_participant(self):
+        make_participant(event=self.event, email='jane@example.com', token='existing-participant')
+        pending = self._make_pending([_row('Jane', 'jane@example.com')])
+        data = _formset_post_data(pending.rows, current_page=1, action='confirm')
+        response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('already registered', response.context['page_error'])
+        self.assertEqual(Participant.objects.count(), 1)
+
+    def test_confirm_blocks_on_duplicate_against_existing_staff_member(self):
+        make_staff_member(event=self.event, email='jane@example.com', token='existing-staff')
+        pending = self._make_pending([_row('Jane', 'jane@example.com')])
+        data = _formset_post_data(pending.rows, current_page=1, action='confirm')
+        response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('already registered', response.context['page_error'])
+        self.assertEqual(Participant.objects.count(), 0)
+
+    def test_confirm_with_valid_data_creates_participants_and_access_links(self):
+        pending = self._make_pending([_row('Jane', 'jane@example.com'), _row('John', 'john@example.com')])
+        data = _formset_post_data(pending.rows, current_page=1, action='confirm')
+        response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        self.assertRedirects(response, reverse('event_edit', args=[self.event.pk]))
+        self.assertEqual(Participant.objects.filter(event=self.event).count(), 2)
+        self.assertFalse(PendingListUpload.objects.filter(pk=pending.pk).exists())
+        jane = Participant.objects.get(event=self.event, email='jane@example.com')
+        self.assertEqual(jane.access_link.role, AccessLink.ROLE_PARTICIPANT)
+        self.assertEqual(jane.access_link.label, 'jane@example.com')
+        self.assertEqual(jane.access_link.event_id, self.event.pk)
+
+    def test_preview_for_another_organisers_data_returns_404(self):
+        self._make_pending([_row('Jane', 'jane@example.com')])
+        self.client.login(username='other@example.com', password='testpass123')
+        response = self.client.get(reverse('participant_list_preview', args=[self.event.pk]))
+        self.assertEqual(response.status_code, 404)
