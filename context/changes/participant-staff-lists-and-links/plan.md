@@ -317,19 +317,19 @@ Purely additive: two new models plus the staging model in the existing `access` 
 
 #### Automated
 
-- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations
-- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3`
-- [x] 1.3 `manage.py check` passes
-- [x] 1.4 Participant duplicate-email-per-event constraint enforced
-- [x] 1.5 StaffMember duplicate-email-per-event constraint enforced
-- [x] 1.6 PendingListUpload unique-per-(organiser,event,role) constraint enforced; different roles coexist
-- [x] 1.8 Participant/StaffMember clean() rejects a mismatched access_link event
-- [x] 1.9 Participant/StaffMember clean() rejects a mismatched access_link role
-- [x] 1.10 Participant/StaffMember clean() rejects an access_link label not matching email
+- [x] 1.1 `makemigrations --check --dry-run` reports no missing migrations — c3ea4e9
+- [x] 1.2 `migrate` applies cleanly against a freshly deleted local `db.sqlite3` — c3ea4e9
+- [x] 1.3 `manage.py check` passes — c3ea4e9
+- [x] 1.4 Participant duplicate-email-per-event constraint enforced — c3ea4e9
+- [x] 1.5 StaffMember duplicate-email-per-event constraint enforced — c3ea4e9
+- [x] 1.6 PendingListUpload unique-per-(organiser,event,role) constraint enforced; different roles coexist — c3ea4e9
+- [x] 1.8 Participant/StaffMember clean() rejects a mismatched access_link event — c3ea4e9
+- [x] 1.9 Participant/StaffMember clean() rejects a mismatched access_link role — c3ea4e9
+- [x] 1.10 Participant/StaffMember clean() rejects an access_link label not matching email — c3ea4e9
 
 #### Manual
 
-- [x] 1.7 Participant, StaffMember, PendingListUpload appear in `/admin/` with expected columns
+- [x] 1.7 Participant, StaffMember, PendingListUpload appear in `/admin/` with expected columns — c3ea4e9
 
 ### Phase 2: Participant list — upload, preview, atomic confirm
 

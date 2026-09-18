@@ -11,11 +11,13 @@ class AccessLinkAdmin(admin.ModelAdmin):
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ['event', 'name', 'email']
+    search_fields = ['name', 'email']
 
 
 @admin.register(StaffMember)
 class StaffMemberAdmin(admin.ModelAdmin):
     list_display = ['event', 'name', 'email']
+    search_fields = ['name', 'email']
 
 
 @admin.register(PendingListUpload)
