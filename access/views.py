@@ -2,7 +2,7 @@ import math
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -13,13 +13,20 @@ from .forms import (
     PAGE_SIZE,
     ListRowFormSet,
     ListUploadForm,
+    StaffAddOneForm,
     full_set_problems,
     parse_list_csv,
     row_initial,
     validate_row,
 )
 from .models import AccessLink, Participant, PendingListUpload, StaffMember
-from .services import establish_staff_session, generate_token, get_staff_access_link, verify_access_link
+from .services import (
+    email_taken_for_event,
+    establish_staff_session,
+    generate_token,
+    get_staff_access_link,
+    verify_access_link,
+)
 
 DECODE_ENCODINGS = ('utf-8-sig', 'cp1252', 'latin-1')
 
@@ -35,10 +42,10 @@ def _decode_csv_bytes(raw_bytes):
     return raw_bytes.decode('latin-1', errors='replace')
 
 
-@login_required
-def participant_list_upload(request, event_pk):
-    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
-
+def _handle_list_upload(request, event, role, template, preview_url_name):
+    """Shared upload mechanics for both roles: size cap before reading,
+    decode fallback, parse, then replace this organiser's pending
+    (unconfirmed) upload for this event+role."""
     if request.method == 'POST':
         form = ListUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -54,17 +61,31 @@ def participant_list_upload(request, event_pk):
                 if error:
                     form.add_error('csv_file', error)
                 else:
-                    PendingListUpload.objects.filter(
-                        organiser=request.user, event=event, role=AccessLink.ROLE_PARTICIPANT,
-                    ).delete()
-                    PendingListUpload.objects.create(
-                        organiser=request.user, event=event, role=AccessLink.ROLE_PARTICIPANT, rows=rows,
-                    )
-                    return redirect('participant_list_preview', event_pk=event.pk)
+                    PendingListUpload.objects.filter(organiser=request.user, event=event, role=role).delete()
+                    PendingListUpload.objects.create(organiser=request.user, event=event, role=role, rows=rows)
+                    return redirect(preview_url_name, event_pk=event.pk)
     else:
         form = ListUploadForm()
 
-    return render(request, 'access/participant_list_upload.html', {'form': form, 'event': event})
+    return render(request, template, {'form': form, 'event': event})
+
+
+@login_required
+def participant_list_upload(request, event_pk):
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    return _handle_list_upload(
+        request, event, AccessLink.ROLE_PARTICIPANT,
+        'access/participant_list_upload.html', 'participant_list_preview',
+    )
+
+
+@login_required
+def staff_list_upload(request, event_pk):
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    return _handle_list_upload(
+        request, event, AccessLink.ROLE_STAFF,
+        'access/staff_list_upload.html', 'staff_list_preview',
+    )
 
 
 def _total_pages(rows):
@@ -75,21 +96,32 @@ def _clamp_page(page, total_pages):
     return max(1, min(page, total_pages))
 
 
-def _render_participant_preview(request, event, page_rows, page, total_pages, page_error=None):
+def _create_member_with_link(event, role, member_model, name, email):
+    """Create one AccessLink plus the Participant/StaffMember pointing at it.
+    Callers wrap this in transaction.atomic() so a failure never leaves a
+    link with no owner. event/role/label are always derived here from the
+    row being created, never from an independently-picked AccessLink."""
+    access_link = AccessLink.objects.create(event=event, role=role, label=email, token=generate_token())
+    member = member_model(event=event, access_link=access_link, name=name, email=email)
+    # Defense-in-depth (plan's Critical Implementation Details):
+    # .create()/.save() never trigger clean() on their own, so explicitly
+    # re-check the event/role/label invariants this code just constructed.
+    member.full_clean()
+    member.save()
+    return member
+
+
+def _render_list_preview(request, event, template, page_rows, page, total_pages, page_error=None):
     formset = ListRowFormSet(initial=[row_initial(r) for r in page_rows], prefix='form')
     rows = list(zip(formset, [list(r['errors'].values()) for r in page_rows]))
-    return render(request, 'access/participant_list_preview.html', {
+    return render(request, template, {
         'event': event, 'formset': formset, 'rows': rows,
         'page': page, 'total_pages': total_pages, 'page_error': page_error,
     })
 
 
-@login_required
-def participant_list_preview(request, event_pk):
-    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
-    pending = get_object_or_404(
-        PendingListUpload, organiser=request.user, event=event, role=AccessLink.ROLE_PARTICIPANT,
-    )
+def _handle_list_preview(request, event, role, member_model, template, preview_url_name, noun):
+    pending = get_object_or_404(PendingListUpload, organiser=request.user, event=event, role=role)
     total_pages = _total_pages(pending.rows)
 
     if request.method == 'GET':
@@ -99,7 +131,7 @@ def participant_list_preview(request, event_pk):
             page = 1
         start = (page - 1) * PAGE_SIZE
         page_rows = pending.rows[start:start + PAGE_SIZE]
-        return _render_participant_preview(request, event, page_rows, page, total_pages)
+        return _render_list_preview(request, event, template, page_rows, page, total_pages)
 
     # POST
     try:
@@ -115,8 +147,8 @@ def participant_list_preview(request, event_pk):
     # fresh instead of trusting it.
     submitted_total = request.POST.get('form-TOTAL_FORMS')
     if submitted_total is None or not submitted_total.isdigit() or int(submitted_total) != len(page_rows):
-        return _render_participant_preview(
-            request, event, page_rows, current_page, total_pages,
+        return _render_list_preview(
+            request, event, template, page_rows, current_page, total_pages,
             page_error='Something went wrong loading this page — please try again.',
         )
 
@@ -134,42 +166,75 @@ def participant_list_preview(request, event_pk):
 
     if action == 'confirm':
         if not pending.rows:
-            return _render_participant_preview(
-                request, event, updated_page_rows, current_page, total_pages,
+            return _render_list_preview(
+                request, event, template, updated_page_rows, current_page, total_pages,
                 page_error='No rows found in this CSV.',
             )
         problems = full_set_problems(pending.rows, event)
         if problems:
-            return _render_participant_preview(
-                request, event, updated_page_rows, current_page, total_pages,
+            return _render_list_preview(
+                request, event, template, updated_page_rows, current_page, total_pages,
                 page_error=' '.join(problems),
             )
         with transaction.atomic():
             for row in pending.rows:
-                access_link = AccessLink.objects.create(
-                    event=event,
-                    role=AccessLink.ROLE_PARTICIPANT,
-                    label=row['email'],
-                    token=generate_token(),
-                )
-                participant = Participant(
-                    event=event, access_link=access_link, name=row['name'], email=row['email'],
-                )
-                # Defense-in-depth (plan's Critical Implementation Details):
-                # .create()/.save() never trigger clean() on their own, so
-                # explicitly re-check the event/role/label invariants this
-                # code just constructed by hand.
-                participant.full_clean()
-                participant.save()
+                _create_member_with_link(event, role, member_model, row['name'], row['email'])
             pending.delete()
-        messages.success(request, f'{len(pending.rows)} participant(s) added.')
+        messages.success(request, f'{len(pending.rows)} {noun}(s) added.')
         return redirect('event_edit', pk=event.pk)
 
     if action == 'next':
         current_page = _clamp_page(current_page + 1, total_pages)
     elif action == 'previous':
         current_page = _clamp_page(current_page - 1, total_pages)
-    return redirect(f"{reverse('participant_list_preview', args=[event.pk])}?page={current_page}")
+    return redirect(f"{reverse(preview_url_name, args=[event.pk])}?page={current_page}")
+
+
+@login_required
+def participant_list_preview(request, event_pk):
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    return _handle_list_preview(
+        request, event, AccessLink.ROLE_PARTICIPANT, Participant,
+        'access/participant_list_preview.html', 'participant_list_preview', 'participant',
+    )
+
+
+@login_required
+def staff_list_preview(request, event_pk):
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    return _handle_list_preview(
+        request, event, AccessLink.ROLE_STAFF, StaffMember,
+        'access/staff_list_preview.html', 'staff_list_preview', 'staff member',
+    )
+
+
+@login_required
+def staff_add_one(request, event_pk):
+    """Direct single-row create-or-reject — no staging model involved."""
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+
+    if request.method == 'POST':
+        form = StaffAddOneForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            if email_taken_for_event(email, event):
+                form.add_error('email', f'{email} is already registered for this event.')
+            else:
+                try:
+                    with transaction.atomic():
+                        _create_member_with_link(event, AccessLink.ROLE_STAFF, StaffMember, name, email)
+                except IntegrityError:
+                    # A concurrent add of the same email won the race past
+                    # the check above; the DB constraint caught it.
+                    form.add_error('email', f'{email} is already registered for this event.')
+                else:
+                    messages.success(request, f'Staff member {name} added.')
+                    return redirect('event_edit', pk=event.pk)
+    else:
+        form = StaffAddOneForm()
+
+    return render(request, 'access/staff_add_one.html', {'form': form, 'event': event})
 
 
 def participant_access(request, token):

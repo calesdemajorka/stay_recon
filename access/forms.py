@@ -72,6 +72,17 @@ def parse_list_csv(text):
     return None, rows
 
 
+class StaffAddOneForm(forms.Form):
+    name = forms.CharField(max_length=MAX_FIELD_VALUE_LENGTH)
+    email = forms.EmailField(max_length=MAX_FIELD_VALUE_LENGTH)
+
+    def clean_name(self):
+        return self.cleaned_data['name'].strip()
+
+    def clean_email(self):
+        return self.cleaned_data['email'].strip()
+
+
 class ListRowForm(forms.Form):
     name = forms.CharField(required=False)
     email = forms.CharField(required=False)

@@ -467,3 +467,160 @@ class ParticipantListPreviewConfirmViewTests(TestCase):
         self.client.login(username='other@example.com', password='testpass123')
         response = self.client.get(reverse('participant_list_preview', args=[self.event.pk]))
         self.assertEqual(response.status_code, 404)
+
+
+class StaffListUploadViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def _upload(self, content_bytes, filename='staff.csv'):
+        return self.client.post(
+            reverse('staff_list_upload', args=[self.event.pk]),
+            {'csv_file': SimpleUploadedFile(filename, content_bytes)},
+        )
+
+    def test_valid_csv_creates_pending_upload(self):
+        response = self._upload(b'name,email\nSam Staff,sam@example.com\n')
+        self.assertRedirects(response, reverse('staff_list_preview', args=[self.event.pk]))
+        pending = PendingListUpload.objects.get(organiser=self.organiser, event=self.event, role=AccessLink.ROLE_STAFF)
+        self.assertEqual(pending.rows[0]['name'], 'Sam Staff')
+        self.assertEqual(pending.rows[0]['email'], 'sam@example.com')
+        self.assertFalse(
+            PendingListUpload.objects.filter(event=self.event, role=AccessLink.ROLE_PARTICIPANT).exists(),
+        )
+
+    def test_missing_name_column_rejected(self):
+        response = self._upload(b'email\nsam@example.com\n')
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response.context['form'], 'csv_file', response.context['form'].errors['csv_file'])
+        self.assertFalse(PendingListUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
+
+    def test_malformed_email_flagged(self):
+        self._upload(b'name,email\nSam Staff,not-an-email\n')
+        pending = PendingListUpload.objects.get(organiser=self.organiser, event=self.event, role=AccessLink.ROLE_STAFF)
+        self.assertIn('email', pending.rows[0]['errors'])
+
+    def test_upload_for_another_organisers_event_returns_404(self):
+        other_event = make_event(organiser=self.other_organiser, name='Other')
+        response = self.client.post(
+            reverse('staff_list_upload', args=[other_event.pk]),
+            {'csv_file': SimpleUploadedFile('staff.csv', b'name,email\nSam,sam@example.com\n')},
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class StaffListPreviewConfirmViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def _make_pending(self, rows):
+        return PendingListUpload.objects.create(
+            organiser=self.organiser, event=self.event, role=AccessLink.ROLE_STAFF, rows=rows,
+        )
+
+    def _confirm(self, pending):
+        data = _formset_post_data(pending.rows, current_page=1, action='confirm')
+        return self.client.post(reverse('staff_list_preview', args=[self.event.pk]), data)
+
+    def test_confirm_blocks_on_duplicate_within_upload(self):
+        pending = self._make_pending([_row('Sam', 'sam@example.com'), _row('Sam Again', 'SAM@example.com')])
+        response = self._confirm(pending)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('duplicates', response.context['page_error'])
+        self.assertEqual(StaffMember.objects.count(), 0)
+
+    def test_confirm_blocks_on_duplicate_against_existing_staff_member(self):
+        make_staff_member(event=self.event, email='sam@example.com', token='existing-staff')
+        pending = self._make_pending([_row('Sam', 'sam@example.com')])
+        response = self._confirm(pending)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('already registered', response.context['page_error'])
+        self.assertEqual(StaffMember.objects.count(), 1)
+
+    def test_confirm_blocks_on_duplicate_against_existing_participant(self):
+        make_participant(event=self.event, email='sam@example.com', token='existing-participant')
+        pending = self._make_pending([_row('Sam', 'sam@example.com')])
+        response = self._confirm(pending)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('already registered', response.context['page_error'])
+        self.assertEqual(StaffMember.objects.count(), 0)
+
+    def test_confirm_with_valid_data_creates_staff_members_and_access_links(self):
+        pending = self._make_pending([_row('Sam', 'sam@example.com'), _row('Kim', 'kim@example.com')])
+        response = self._confirm(pending)
+        self.assertRedirects(response, reverse('event_edit', args=[self.event.pk]))
+        self.assertEqual(StaffMember.objects.filter(event=self.event).count(), 2)
+        self.assertEqual(Participant.objects.count(), 0)
+        self.assertFalse(PendingListUpload.objects.filter(pk=pending.pk).exists())
+        sam = StaffMember.objects.get(event=self.event, email='sam@example.com')
+        self.assertEqual(sam.access_link.role, AccessLink.ROLE_STAFF)
+        self.assertEqual(sam.access_link.label, 'sam@example.com')
+        self.assertEqual(sam.access_link.event_id, self.event.pk)
+
+    def test_participant_pending_upload_not_visible_in_staff_preview(self):
+        PendingListUpload.objects.create(
+            organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT,
+            rows=[_row('Jane', 'jane@example.com')],
+        )
+        response = self.client.get(reverse('staff_list_preview', args=[self.event.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_preview_for_another_organisers_data_returns_404(self):
+        self._make_pending([_row('Sam', 'sam@example.com')])
+        self.client.login(username='other@example.com', password='testpass123')
+        response = self.client.get(reverse('staff_list_preview', args=[self.event.pk]))
+        self.assertEqual(response.status_code, 404)
+
+
+class StaffAddOneViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def _add(self, name, email, event=None):
+        event = event or self.event
+        return self.client.post(reverse('staff_add_one', args=[event.pk]), {'name': name, 'email': email})
+
+    def test_fresh_email_creates_staff_member_and_access_link(self):
+        response = self._add('Sam Staff', ' sam@example.com ')
+        self.assertRedirects(response, reverse('event_edit', args=[self.event.pk]))
+        sam = StaffMember.objects.get(event=self.event)
+        self.assertEqual(sam.email, 'sam@example.com')
+        self.assertEqual(sam.access_link.role, AccessLink.ROLE_STAFF)
+        self.assertEqual(sam.access_link.label, 'sam@example.com')
+        self.assertFalse(PendingListUpload.objects.exists())
+
+    def test_email_of_existing_participant_rejected(self):
+        make_participant(event=self.event, email='jane@example.com', token='existing-participant')
+        response = self._add('Jane', 'JANE@example.com')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('already registered', response.context['form'].errors['email'][0])
+        self.assertEqual(StaffMember.objects.count(), 0)
+        self.assertEqual(AccessLink.objects.filter(role=AccessLink.ROLE_STAFF).count(), 0)
+
+    def test_email_of_existing_staff_member_rejected(self):
+        make_staff_member(event=self.event, email='sam@example.com', token='existing-staff')
+        response = self._add('Sam Again', 'sam@example.com')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('already registered', response.context['form'].errors['email'][0])
+        self.assertEqual(StaffMember.objects.count(), 1)
+
+    def test_malformed_email_rejected(self):
+        response = self._add('Sam', 'not-an-email')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('email', response.context['form'].errors)
+        self.assertEqual(StaffMember.objects.count(), 0)
+
+    def test_add_for_another_organisers_event_returns_404(self):
+        other_event = make_event(organiser=self.other_organiser, name='Other')
+        response = self._add('Sam', 'sam@example.com', event=other_event)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(StaffMember.objects.count(), 0)

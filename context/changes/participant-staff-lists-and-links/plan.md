@@ -360,17 +360,17 @@ Purely additive: two new models plus the staging model in the existing `access` 
 
 #### Automated
 
-- [ ] 3.1 Valid staff CSV creates PendingListUpload with matching rows
-- [ ] 3.2 CSV missing a required column rejected
-- [ ] 3.3 Malformed email flagged per-row
-- [ ] 3.4 Confirm blocks on within-upload duplicate
-- [ ] 3.5 Confirm blocks on duplicate against existing StaffMember (append-only)
-- [ ] 3.6 Confirm blocks on duplicate against existing Participant (cross-role)
-- [ ] 3.7 Confirm with valid data creates StaffMember + AccessLink rows with role='staff'
-- [ ] 3.8 staff_add_one with a fresh email creates one StaffMember + AccessLink immediately
-- [ ] 3.9 staff_add_one rejects an email already used by an existing Participant
-- [ ] 3.10 staff_add_one rejects an email already used by an existing StaffMember
-- [ ] 3.11 Upload/add/preview for another organiser's event returns 404
+- [x] 3.1 Valid staff CSV creates PendingListUpload with matching rows
+- [x] 3.2 CSV missing a required column rejected
+- [x] 3.3 Malformed email flagged per-row
+- [x] 3.4 Confirm blocks on within-upload duplicate
+- [x] 3.5 Confirm blocks on duplicate against existing StaffMember (append-only)
+- [x] 3.6 Confirm blocks on duplicate against existing Participant (cross-role)
+- [x] 3.7 Confirm with valid data creates StaffMember + AccessLink rows with role='staff'
+- [x] 3.8 staff_add_one with a fresh email creates one StaffMember + AccessLink immediately
+- [x] 3.9 staff_add_one rejects an email already used by an existing Participant
+- [x] 3.10 staff_add_one rejects an email already used by an existing StaffMember
+- [x] 3.11 Upload/add/preview for another organiser's event returns 404
 
 #### Manual
 
