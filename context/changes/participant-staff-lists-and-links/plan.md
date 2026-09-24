@@ -360,23 +360,23 @@ Purely additive: two new models plus the staging model in the existing `access` 
 
 #### Automated
 
-- [x] 3.1 Valid staff CSV creates PendingListUpload with matching rows
-- [x] 3.2 CSV missing a required column rejected
-- [x] 3.3 Malformed email flagged per-row
-- [x] 3.4 Confirm blocks on within-upload duplicate
-- [x] 3.5 Confirm blocks on duplicate against existing StaffMember (append-only)
-- [x] 3.6 Confirm blocks on duplicate against existing Participant (cross-role)
-- [x] 3.7 Confirm with valid data creates StaffMember + AccessLink rows with role='staff'
-- [x] 3.8 staff_add_one with a fresh email creates one StaffMember + AccessLink immediately
-- [x] 3.9 staff_add_one rejects an email already used by an existing Participant
-- [x] 3.10 staff_add_one rejects an email already used by an existing StaffMember
-- [x] 3.11 Upload/add/preview for another organiser's event returns 404
+- [x] 3.1 Valid staff CSV creates PendingListUpload with matching rows — 67ecdff
+- [x] 3.2 CSV missing a required column rejected — 67ecdff
+- [x] 3.3 Malformed email flagged per-row — 67ecdff
+- [x] 3.4 Confirm blocks on within-upload duplicate — 67ecdff
+- [x] 3.5 Confirm blocks on duplicate against existing StaffMember (append-only) — 67ecdff
+- [x] 3.6 Confirm blocks on duplicate against existing Participant (cross-role) — 67ecdff
+- [x] 3.7 Confirm with valid data creates StaffMember + AccessLink rows with role='staff' — 67ecdff
+- [x] 3.8 staff_add_one with a fresh email creates one StaffMember + AccessLink immediately — 67ecdff
+- [x] 3.9 staff_add_one rejects an email already used by an existing Participant — 67ecdff
+- [x] 3.10 staff_add_one rejects an email already used by an existing StaffMember — 67ecdff
+- [x] 3.11 Upload/add/preview for another organiser's event returns 404 — 67ecdff
 
 #### Manual
 
-- [ ] 3.12 Live: upload staff CSV, confirm, verify rows
-- [ ] 3.13 Live: manual add-one form adds a single staff member
-- [ ] 3.14 Live: manual add rejects an email already used by a participant, with a clear message
+- [x] 3.12 Live: upload staff CSV, confirm, verify rows — manual, 2026-09-24
+- [x] 3.13 Live: manual add-one form adds a single staff member — manual, 2026-09-24
+- [x] 3.14 Live: manual add rejects an email already used by a participant, with a clear message — manual, 2026-09-24
 
 ### Phase 4: Links list + CSV export
 
