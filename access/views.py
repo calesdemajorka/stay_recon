@@ -1,8 +1,10 @@
+import csv
 import math
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -235,6 +237,64 @@ def staff_add_one(request, event_pk):
         form = StaffAddOneForm()
 
     return render(request, 'access/staff_add_one.html', {'form': form, 'event': event})
+
+
+# Leading characters a spreadsheet app treats as the start of a formula
+# (lessons.md: CSV export must sanitize formula injection). Tab and CR are
+# included too, since some apps strip them and then evaluate what follows.
+FORMULA_PREFIXES = ('=', '+', '-', '@', '\t', '\r')
+
+
+def _csv_safe(value):
+    return f"'{value}" if value.startswith(FORMULA_PREFIXES) else value
+
+
+def _event_link_rows(request, event):
+    """One dict per AccessLink on this event (both roles): role, the owning
+    Participant/StaffMember's name and email, and the absolute URL to share.
+    Absolute, not relative: these get pasted into emails outside the app."""
+    access_links = (
+        AccessLink.objects.filter(event=event)
+        .select_related('participant', 'staff_member')
+        .order_by('role', 'label')
+    )
+    rows = []
+    for access_link in access_links:
+        if access_link.role == AccessLink.ROLE_STAFF:
+            owner = getattr(access_link, 'staff_member', None)
+            url_name = 'staff_login'
+        else:
+            owner = getattr(access_link, 'participant', None)
+            url_name = 'participant_access'
+        rows.append({
+            'role': access_link.get_role_display(),
+            'name': owner.name if owner else '',
+            'email': owner.email if owner else access_link.label,
+            'link': request.build_absolute_uri(reverse(url_name, args=[access_link.token])),
+        })
+    return rows
+
+
+@login_required
+def event_links(request, event_pk):
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    return render(request, 'access/event_links.html', {
+        'event': event, 'rows': _event_link_rows(request, event),
+    })
+
+
+@login_required
+def event_links_export(request, event_pk):
+    event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="event-{event.pk}-links.csv"'
+    # BOM so Excel detects UTF-8 and doesn't mangle non-ASCII names.
+    response.write('\ufeff')
+    writer = csv.writer(response)
+    writer.writerow(['role', 'name', 'email', 'link'])
+    for row in _event_link_rows(request, event):
+        writer.writerow([_csv_safe(row['role']), _csv_safe(row['name']), _csv_safe(row['email']), row['link']])
+    return response
 
 
 def participant_access(request, token):

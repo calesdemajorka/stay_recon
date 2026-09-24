@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import include, path
 
 from access.views import (
+    event_links,
+    event_links_export,
     participant_access,
     participant_list_preview,
     participant_list_upload,
@@ -51,6 +53,8 @@ urlpatterns = [
     path('events/<int:event_pk>/staff/upload/', staff_list_upload, name='staff_list_upload'),
     path('events/<int:event_pk>/staff/add/', staff_add_one, name='staff_add_one'),
     path('events/<int:event_pk>/staff/preview/', staff_list_preview, name='staff_list_preview'),
+    path('events/<int:event_pk>/links/', event_links, name='event_links'),
+    path('events/<int:event_pk>/links/export/', event_links_export, name='event_links_export'),
     path('participant/<str:token>/', participant_access, name='participant_access'),
     path('staff/<str:token>/', staff_login, name='staff_login'),
     path('staff/events/<int:event_pk>/', staff_dashboard, name='staff_dashboard'),

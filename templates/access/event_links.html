@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Access links — StayRecon{% endblock %}
+{% block content %}
+  <h1>Access links</h1>
+  <p>Event: {{ event.name }}</p>
+  <p><a href="{% url 'event_links_export' event_pk=event.pk %}">Download as CSV</a></p>
+  {% if rows %}
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Name</th><th>Email</th><th>Link</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.role }}</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.email }}</td>
+            <td><a href="{{ row.link }}">{{ row.link }}</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No access links yet — upload a participant or staff list first.</p>
+  {% endif %}
+{% endblock %}

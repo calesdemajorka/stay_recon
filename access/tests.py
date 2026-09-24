@@ -624,3 +624,55 @@ class StaffAddOneViewTests(TestCase):
         response = self._add('Sam', 'sam@example.com', event=other_event)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(StaffMember.objects.count(), 0)
+
+
+class EventLinksViewTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.other_organiser = User.objects.create_user(email='other@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.jane = make_participant(event=self.event, name='Jane Doe', email='jane@example.com', token='jane-token')
+        self.sam = make_staff_member(event=self.event, name='Sam Staff', email='sam@example.com', token='sam-token')
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def test_links_list_shows_both_roles_with_absolute_urls(self):
+        response = self.client.get(reverse('event_links', args=[self.event.pk]))
+        self.assertEqual(response.status_code, 200)
+        rows = {row['email']: row for row in response.context['rows']}
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows['jane@example.com']['name'], 'Jane Doe')
+        self.assertEqual(rows['jane@example.com']['link'], 'http://testserver/participant/jane-token/')
+        self.assertEqual(rows['sam@example.com']['name'], 'Sam Staff')
+        self.assertEqual(rows['sam@example.com']['link'], 'http://testserver/staff/sam-token/')
+        self.assertContains(response, 'http://testserver/participant/jane-token/')
+
+    def test_links_list_excludes_other_events_links(self):
+        other_event = make_event(organiser=self.organiser, name='Second Event')
+        make_participant(event=other_event, email='elsewhere@example.com', token='elsewhere-token')
+        response = self.client.get(reverse('event_links', args=[self.event.pk]))
+        emails = [row['email'] for row in response.context['rows']]
+        self.assertNotIn('elsewhere@example.com', emails)
+
+    def test_csv_export_has_expected_columns_and_rows(self):
+        response = self.client.get(reverse('event_links_export', args=[self.event.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response['Content-Type'].startswith('text/csv'))
+        self.assertIn('attachment', response['Content-Disposition'])
+        lines = response.content.decode('utf-8-sig').splitlines()
+        self.assertEqual(lines[0], 'role,name,email,link')
+        self.assertEqual(len(lines), 3)
+        self.assertIn('Participant,Jane Doe,jane@example.com,http://testserver/participant/jane-token/', lines)
+        self.assertIn('Staff,Sam Staff,sam@example.com,http://testserver/staff/sam-token/', lines)
+
+    def test_csv_export_neutralises_formula_prefixes(self):
+        make_participant(event=self.event, name='=HYPERLINK("http://evil")', email='evil@example.com', token='evil-token')
+        response = self.client.get(reverse('event_links_export', args=[self.event.pk]))
+        content = response.content.decode('utf-8-sig')
+        self.assertIn("'=HYPERLINK", content)
+        self.assertNotIn(',=HYPERLINK', content)
+        self.assertNotIn(',"=HYPERLINK', content)
+
+    def test_links_list_and_export_for_another_organisers_event_return_404(self):
+        self.client.login(username='other@example.com', password='testpass123')
+        self.assertEqual(self.client.get(reverse('event_links', args=[self.event.pk])).status_code, 404)
+        self.assertEqual(self.client.get(reverse('event_links_export', args=[self.event.pk])).status_code, 404)
