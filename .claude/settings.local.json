@@ -11,7 +11,8 @@
       "Edit",
       "Write",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Read(//tmp/claude-1000/**)"
     ],
     "deny": [
       "Bash(rm -rf *)"
