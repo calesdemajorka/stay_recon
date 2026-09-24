@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from events.models import Event
 
-from .forms import MAX_UPLOAD_BYTES
+from .forms import MAX_UPLOAD_BYTES, full_set_problems
 from .models import AccessLink, Participant, PendingListUpload, StaffMember
 from .services import STAFF_SESSION_KEY, verify_access_link
 
@@ -118,7 +118,9 @@ class ParticipantStaffMemberModelTests(TestCase):
             participant.full_clean()
 
     def test_staff_member_clean_rejects_mismatched_access_link_event(self):
-        mismatched_link = make_access_link(event=self.other_event, role=AccessLink.ROLE_STAFF, token='mismatch-2')
+        mismatched_link = make_access_link(
+            event=self.other_event, role=AccessLink.ROLE_STAFF, token='mismatch-2', label='sam@example.com',
+        )
         staff = StaffMember(event=self.event, access_link=mismatched_link, name='Sam', email='sam@example.com')
         with self.assertRaises(ValidationError):
             staff.full_clean()
@@ -311,7 +313,7 @@ class ParticipantListUploadViewTests(TestCase):
     def test_missing_email_column_rejected(self):
         response = self._upload('name,phone\nJane Doe,555-1234\n'.encode('utf-8'))
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response.context['form'], 'csv_file', response.context['form'].errors['csv_file'])
+        self.assertIn("expected 'name' and 'email' columns", response.context['form'].errors['csv_file'][0])
         self.assertFalse(PendingListUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
 
     def test_cp1252_csv_decoded_via_fallback(self):
@@ -326,7 +328,7 @@ class ParticipantListUploadViewTests(TestCase):
         oversized = b'name,email\n' + row * (MAX_UPLOAD_BYTES // len(row) + 1)
         response = self._upload(oversized)
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response.context['form'], 'csv_file', response.context['form'].errors['csv_file'])
+        self.assertIn('larger than 2MB', response.context['form'].errors['csv_file'][0])
         self.assertFalse(PendingListUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
 
     def test_malformed_email_flagged(self):
@@ -390,10 +392,16 @@ class ParticipantListPreviewConfirmViewTests(TestCase):
     def test_page_slices_correct(self):
         rows = [_row(f'Person {i}', f'person{i}@example.com') for i in range(30)]
         self._make_pending(rows)
-        response = self.client.get(reverse('participant_list_preview', args=[self.event.pk]), {'page': 2})
-        self.assertEqual(response.context['page'], 2)
-        self.assertEqual(response.context['total_pages'], 2)
-        self.assertEqual(len(response.context['rows']), 5)
+        url = reverse('participant_list_preview', args=[self.event.pk])
+        page_1 = self.client.get(url, {'page': 1}).context
+        self.assertEqual(len(page_1['rows']), 25)
+        self.assertEqual(page_1['rows'][0][0].initial['name'], 'Person 0')
+        self.assertEqual(page_1['rows'][-1][0].initial['name'], 'Person 24')
+        page_2 = self.client.get(url, {'page': 2}).context
+        self.assertEqual(page_2['page'], 2)
+        self.assertEqual(page_2['total_pages'], 2)
+        self.assertEqual(len(page_2['rows']), 5)
+        self.assertEqual(page_2['rows'][0][0].initial['name'], 'Person 25')
 
     def test_correcting_row_clears_error_and_persists(self):
         pending = self._make_pending([_row('Jane', 'not-an-email', errors={'email': 'Enter a valid email address.'})])
@@ -429,7 +437,7 @@ class ParticipantListPreviewConfirmViewTests(TestCase):
         data = _formset_post_data(pending.rows, current_page=1, action='confirm')
         response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('duplicates', response.context['page_error'])
+        self.assertIn('Row 2 on page 1 duplicates the email of row 1 on page 1', response.context['page_error'])
         self.assertEqual(Participant.objects.count(), 0)
 
     def test_confirm_blocks_on_duplicate_against_existing_participant(self):
@@ -495,7 +503,7 @@ class StaffListUploadViewTests(TestCase):
     def test_missing_name_column_rejected(self):
         response = self._upload(b'email\nsam@example.com\n')
         self.assertEqual(response.status_code, 200)
-        self.assertFormError(response.context['form'], 'csv_file', response.context['form'].errors['csv_file'])
+        self.assertIn("expected 'name' and 'email' columns", response.context['form'].errors['csv_file'][0])
         self.assertFalse(PendingListUpload.objects.filter(organiser=self.organiser, event=self.event).exists())
 
     def test_malformed_email_flagged(self):
@@ -532,7 +540,7 @@ class StaffListPreviewConfirmViewTests(TestCase):
         pending = self._make_pending([_row('Sam', 'sam@example.com'), _row('Sam Again', 'SAM@example.com')])
         response = self._confirm(pending)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('duplicates', response.context['page_error'])
+        self.assertIn('Row 2 on page 1 duplicates the email of row 1 on page 1', response.context['page_error'])
         self.assertEqual(StaffMember.objects.count(), 0)
 
     def test_confirm_blocks_on_duplicate_against_existing_staff_member(self):
@@ -676,3 +684,58 @@ class EventLinksViewTests(TestCase):
         self.client.login(username='other@example.com', password='testpass123')
         self.assertEqual(self.client.get(reverse('event_links', args=[self.event.pk])).status_code, 404)
         self.assertEqual(self.client.get(reverse('event_links_export', args=[self.event.pk])).status_code, 404)
+
+
+class FullSetProblemsTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+
+    def test_existing_email_lookup_is_constant_query_count(self):
+        make_participant(event=self.event, email='Jane@Example.com', token='existing-participant')
+        make_staff_member(event=self.event, email='sam@example.com', token='existing-staff')
+        rows = [_row(f'Person {i}', f'person{i}@example.com') for i in range(50)]
+        rows.append(_row('Jane', ' jane@example.com'))
+        rows.append(_row('Sam', 'SAM@example.com'))
+        with self.assertNumQueries(2):
+            problems = full_set_problems(rows, self.event)
+        self.assertEqual(len(problems), 2)
+        self.assertTrue(all('already registered' in p for p in problems))
+
+
+class ListingLimitsTests(TestCase):
+    def setUp(self):
+        self.organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        self.event = make_event(organiser=self.organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+
+    def test_confirm_error_message_capped(self):
+        rows = [_row('', f'bad{i}', errors={'email': 'Enter a valid email address.'}) for i in range(15)]
+        PendingListUpload.objects.create(
+            organiser=self.organiser, event=self.event, role=AccessLink.ROLE_PARTICIPANT, rows=rows,
+        )
+        data = _formset_post_data(rows, current_page=1, action='confirm')
+        response = self.client.post(reverse('participant_list_preview', args=[self.event.pk]), data)
+        page_error = response.context['page_error']
+        self.assertEqual(page_error.count('has an error'), 10)
+        self.assertIn('and 5 more', page_error)
+
+    def test_links_list_paginated(self):
+        for i in range(30):
+            make_participant(event=self.event, email=f'person{i:02d}@example.com', token=f'token-{i}')
+        url = reverse('event_links', args=[self.event.pk])
+        page_1 = self.client.get(url)
+        self.assertEqual(len(page_1.context['rows']), 25)
+        page_2 = self.client.get(url, {'page': 2})
+        self.assertEqual(len(page_2.context['rows']), 5)
+        self.assertEqual(page_2.context['rows'][0]['email'], 'person25@example.com')
+
+
+class EventEditNavigationTests(TestCase):
+    def test_event_edit_page_links_to_list_and_links_pages(self):
+        organiser = User.objects.create_user(email='organiser@example.com', password='testpass123')
+        event = make_event(organiser=organiser)
+        self.client.login(username='organiser@example.com', password='testpass123')
+        response = self.client.get(reverse('event_edit', args=[event.pk]))
+        for name in ('participant_list_upload', 'staff_list_upload', 'staff_add_one', 'event_links'):
+            self.assertContains(response, reverse(name, args=[event.pk]))

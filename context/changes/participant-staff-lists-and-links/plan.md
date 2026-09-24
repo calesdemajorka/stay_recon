@@ -149,7 +149,7 @@ The full participant-list flow: CSV upload → staged parse → paginated editab
 - Unit test: correcting a row's email on page-save clears its error and persists
 - Unit test: confirm blocks on a remaining per-row error, creates no `Participant`/`AccessLink` rows
 - Unit test: confirm blocks on a duplicate email *within* the uploaded list, names the colliding rows
-- Unit test: confirm blocks on a duplicate email against an *existing* `Participant` for this event (append-only), creates no new row for that email, other valid rows still succeed
+- Unit test: confirm blocks on a duplicate email against an *existing* `Participant` for this event (append-only): the whole confirm is blocked (no rows created) until that row is corrected; removing a staged row is GH #19 (amended per impl-review F4)
 - Unit test: confirm blocks when an uploaded participant email already belongs to an existing `StaffMember` for this event (cross-role rejection)
 - Unit test: confirm with a fully valid set creates matching `Participant` + `AccessLink` rows (role=`participant`, `label`=email), deletes the `PendingListUpload`
 - Unit test: upload/preview/confirm for another organiser's event returns 404

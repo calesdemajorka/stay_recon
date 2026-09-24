@@ -3,6 +3,7 @@ import math
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -63,8 +64,9 @@ def _handle_list_upload(request, event, role, template, preview_url_name):
                 if error:
                     form.add_error('csv_file', error)
                 else:
-                    PendingListUpload.objects.filter(organiser=request.user, event=event, role=role).delete()
-                    PendingListUpload.objects.create(organiser=request.user, event=event, role=role, rows=rows)
+                    with transaction.atomic():
+                        PendingListUpload.objects.filter(organiser=request.user, event=event, role=role).delete()
+                        PendingListUpload.objects.create(organiser=request.user, event=event, role=role, rows=rows)
                     return redirect(preview_url_name, event_pk=event.pk)
     else:
         form = ListUploadForm()
@@ -111,6 +113,17 @@ def _create_member_with_link(event, role, member_model, name, email):
     member.full_clean()
     member.save()
     return member
+
+
+MAX_LISTED_PROBLEMS = 10
+
+
+def _summarize_problems(problems):
+    """Join confirm-time problems into one message, capped so a 5000-row
+    upload with a systemic error doesn't render thousands of sentences."""
+    shown = ' '.join(problems[:MAX_LISTED_PROBLEMS])
+    hidden = len(problems) - MAX_LISTED_PROBLEMS
+    return f'{shown} …and {hidden} more.' if hidden > 0 else shown
 
 
 def _render_list_preview(request, event, template, page_rows, page, total_pages, page_error=None):
@@ -176,7 +189,7 @@ def _handle_list_preview(request, event, role, member_model, template, preview_u
         if problems:
             return _render_list_preview(
                 request, event, template, updated_page_rows, current_page, total_pages,
-                page_error=' '.join(problems),
+                page_error=_summarize_problems(problems),
             )
         with transaction.atomic():
             for row in pending.rows:
@@ -249,15 +262,18 @@ def _csv_safe(value):
     return f"'{value}" if value.startswith(FORMULA_PREFIXES) else value
 
 
-def _event_link_rows(request, event):
-    """One dict per AccessLink on this event (both roles): role, the owning
-    Participant/StaffMember's name and email, and the absolute URL to share.
-    Absolute, not relative: these get pasted into emails outside the app."""
-    access_links = (
+def _event_access_links(event):
+    return (
         AccessLink.objects.filter(event=event)
         .select_related('participant', 'staff_member')
         .order_by('role', 'label')
     )
+
+
+def _event_link_rows(request, access_links):
+    """One dict per AccessLink (both roles): role, the owning
+    Participant/StaffMember's name and email, and the absolute URL to share.
+    Absolute, not relative: these get pasted into emails outside the app."""
     rows = []
     for access_link in access_links:
         if access_link.role == AccessLink.ROLE_STAFF:
@@ -278,8 +294,10 @@ def _event_link_rows(request, event):
 @login_required
 def event_links(request, event_pk):
     event = get_object_or_404(Event, pk=event_pk, organiser=request.user)
+    # The CSV export is the bulk path; the on-screen list is paginated.
+    page_obj = Paginator(_event_access_links(event), PAGE_SIZE).get_page(request.GET.get('page'))
     return render(request, 'access/event_links.html', {
-        'event': event, 'rows': _event_link_rows(request, event),
+        'event': event, 'rows': _event_link_rows(request, page_obj), 'page_obj': page_obj,
     })
 
 
@@ -292,7 +310,7 @@ def event_links_export(request, event_pk):
     response.write('\ufeff')
     writer = csv.writer(response)
     writer.writerow(['role', 'name', 'email', 'link'])
-    for row in _event_link_rows(request, event):
+    for row in _event_link_rows(request, _event_access_links(event)):
         writer.writerow([_csv_safe(row['role']), _csv_safe(row['name']), _csv_safe(row['email']), row['link']])
     return response
 

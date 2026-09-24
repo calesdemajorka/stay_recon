@@ -5,7 +5,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
-from .services import email_taken_for_event
+from .services import taken_emails_for_event
 
 MAX_ROWS = 5000
 MAX_UPLOAD_BYTES = 2 * 1024 * 1024  # 2MB — generous for a participant/staff list, rejected before reading
@@ -104,6 +104,7 @@ def full_set_problems(rows, event):
     affected page(s)/row(s), or an empty list if clean."""
     problems = []
     seen = {}
+    taken = taken_emails_for_event(event)
     for i, row in enumerate(rows):
         page = i // PAGE_SIZE + 1
         row_in_page = i % PAGE_SIZE + 1
@@ -117,7 +118,7 @@ def full_set_problems(rows, event):
                 f'Row {row_in_page} on page {page} duplicates the email '
                 f'of row {seen_row} on page {seen_page}.'
             )
-        elif email_taken_for_event(row['email'], event):
+        elif normalized in taken:
             problems.append(
                 f'Row {row_in_page} on page {page}: {row["email"]} is already registered for this event.'
             )

@@ -21,3 +21,13 @@
 **Rule**: Always stage commits with explicit file paths — only the files genuinely touched by the current unit of work. Any other dirty path in the working tree must be surfaced to the user explicitly (not silently included, not silently ignored) so they can decide what happens to it.
 
 **Applies to**: Every commit in this project, not just `/10x-implement`'s phase-end ritual (which already does this) — this is a general git-hygiene rule for any commit authored in this repo.
+
+## New pages must name their navigation entry point
+
+**Context**: `templates/events/event_form.html:11` — the event edit page, where every list-flow success redirect lands, links only to the room CSV upload.
+
+**Problem**: `participant-staff-lists-and-links` shipped four organiser-facing pages (participant upload, staff upload, staff add-one, links list) with no link from any existing template. The plan never listed navigation, so the manual verification of every phase relied on typing URLs by hand.
+
+**Rule**: Every plan that adds a user-facing page must name where the user navigates to it from (the entry-point template/link) in its Changes Required.
+
+**Applies to**: /10x-plan and /10x-plan-review for any change that adds a new view/URL.

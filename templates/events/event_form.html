@@ -9,6 +9,12 @@
   </form>
   {% if form.instance.pk %}
     <p><a href="{% url 'rooms_upload' event_pk=form.instance.pk %}">Upload room CSV</a></p>
+    <p><a href="{% url 'participant_list_upload' event_pk=form.instance.pk %}">Upload participant list</a></p>
+    <p>
+      <a href="{% url 'staff_list_upload' event_pk=form.instance.pk %}">Upload staff list</a>
+      · <a href="{% url 'staff_add_one' event_pk=form.instance.pk %}">Add one staff member</a>
+    </p>
+    <p><a href="{% url 'event_links' event_pk=form.instance.pk %}">Access links</a></p>
     <p><a href="{% url 'event_delete' form.instance.pk %}">Delete event</a></p>
   {% endif %}
 {% endblock %}

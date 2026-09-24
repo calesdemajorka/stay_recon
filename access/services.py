@@ -31,6 +31,21 @@ def email_taken_for_event(email, event):
     ).filter(event=event, normalized_email=normalized).exists()
 
 
+def taken_emails_for_event(event):
+    """Every normalized email already used by a Participant or StaffMember
+    for this event, as one set — the bulk counterpart of
+    email_taken_for_event(), so a full-set check over thousands of staged
+    rows costs two queries instead of two per row."""
+    taken = set()
+    for model in (Participant, StaffMember):
+        taken.update(
+            model.objects.filter(event=event)
+            .annotate(normalized_email=Lower(Trim('email')))
+            .values_list('normalized_email', flat=True)
+        )
+    return taken
+
+
 def verify_access_link(token, *, role=None):
     """Validate a token and return the AccessLink it authorizes, or None.
 
