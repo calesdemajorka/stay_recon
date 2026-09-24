@@ -382,11 +382,11 @@ Purely additive: two new models plus the staging model in the existing `access` 
 
 #### Automated
 
-- [x] 4.1 Links list shows both participant and staff links with correct absolute URLs
-- [x] 4.2 CSV export returns expected columns/row count and Content-Type
-- [x] 4.3 Links list/export for another organiser's event returns 404
+- [x] 4.1 Links list shows both participant and staff links with correct absolute URLs — d75a6d1
+- [x] 4.2 CSV export returns expected columns/row count and Content-Type — d75a6d1
+- [x] 4.3 Links list/export for another organiser's event returns 404 — d75a6d1
 
 #### Manual
 
-- [ ] 4.4 Live: links list renders all links correctly, each URL copyable/clickable
-- [ ] 4.5 Live: CSV export downloads and opens correctly with the right columns
+- [x] 4.4 Live: links list renders all links correctly, each URL copyable/clickable — manual, 2026-09-24
+- [x] 4.5 Live: CSV export downloads and opens correctly with the right columns — manual, 2026-09-24
